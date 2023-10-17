@@ -1,0 +1,7 @@
+{
+  "name": "WASM-Analyzer",
+  "version": "0.0.1",
+  "dependencies": {
+    "wabt": "^1.0.32"
+  }
+}
