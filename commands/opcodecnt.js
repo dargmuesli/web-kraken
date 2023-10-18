@@ -1,7 +1,9 @@
 const {spawn} = require("child_process");
 
 function opcodecnt (path) {
-    const child = spawn('node', ['./node_modules/wabt/bin/wasm-opcodecnt', path, '--enable-all']);
+
+    const root = __dirname.substring(0, __dirname.lastIndexOf('\\'));
+    const child = spawn('node', [root + '\\node_modules\\wabt\\bin\\wasm-opcodecnt', path, '--enable-all']);
     let result = '';
     child.stdout.on('data', (data) => {
         result += data.toString();
