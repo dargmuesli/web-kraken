@@ -1,27 +1,30 @@
 const {spawn} = require("child_process");
 
-async function funcls(path) {
-    console.log('Function names:');
+function funcls(path, options) {
     const root = __dirname.substring(0, __dirname.lastIndexOf('\\'));
-
-
-    let types = await getTypeTable(path);
     const child = spawn('node', [root + '\\node_modules\\wabt\\bin\\wasm-objdump', '-x', '-j', 'Function', path]);
     let result = '';
     child.stdout.on('data', (data) => {
         result += data.toString();
     });
-    child.stdout.on('end', () => {
+    child.stdout.on('end', async () => {
         const functionString = result.substring(result.indexOf('- func'));
         const lines = functionString.split(/\n/);
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].indexOf('func') === -1) continue;
+
             const regExp = /<([^>]+)>/;
             const matches = lines[i].match(regExp);
             if (matches === null) continue;
-            const sigIndex = lines[i].indexOf('sig=') + 'sig='.length;
-            const index = parseInt(lines[i].substring(sigIndex, sigIndex + 1));
-            console.log(matches[1] + ' ' + types[index]);
+            let output = matches[1];
+
+            if (options.type) {
+                const types = await getTypeTable(path);
+                const sigIndex = lines[i].indexOf('sig=') + 'sig='.length;
+                const index = parseInt(lines[i].substring(sigIndex, sigIndex + 1));
+                output += ' ' + types[index];
+            }
+            console.log(output);
         }
     });
 }

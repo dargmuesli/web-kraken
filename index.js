@@ -6,6 +6,7 @@ const opcodecnt = require('./commands/opcodecnt');
 program
     .command('funcls <path>')
     .description('List all functions of the wasm file')
+    .option('-t, --type', 'Show function types')
     .action(funcls);
 
 program
