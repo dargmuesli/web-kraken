@@ -1,8 +1,7 @@
 const {spawn} = require("child_process");
 
 function funcls(path, options) {
-    const root = __dirname.substring(0, __dirname.lastIndexOf('\\'));
-    const child = spawn('node', [root + '\\node_modules\\wabt\\bin\\wasm-objdump', '-x', '-j', 'Function', path]);
+    const child = childSpawn('wasm-objdump', ['-x', '-j', 'Function', path]);
     let result = '';
     child.stdout.on('data', (data) => {
         result += data.toString();
@@ -31,8 +30,7 @@ function funcls(path, options) {
 
 function getTypeTable(path) {
     return new Promise((resolve) => {
-        const root = __dirname.substring(0, __dirname.lastIndexOf('\\'));
-        const child = spawn('node', [root + '\\node_modules\\wabt\\bin\\wasm-objdump', '-x', '-j', 'Type', path]);
+        const child = childSpawn('wasm-objdump', ['-x', '-j', 'Type', path]);
         let result = '';
         child.stdout.on('data', (data) => {
             result += data.toString();
@@ -48,6 +46,11 @@ function getTypeTable(path) {
             resolve(types);
         });
     });
+}
+
+function childSpawn(command, options) {
+    const root = __dirname.substring(0, __dirname.lastIndexOf('\\'));
+    return spawn('node', [root + '\\node_modules\\wabt\\bin\\' + command].concat(options));
 }
 
 
