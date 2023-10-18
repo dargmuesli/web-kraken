@@ -9,6 +9,7 @@ function funcls(path, options) {
     child.stdout.on('end', async () => {
         const functionString = result.substring(result.indexOf('- func'));
         const lines = functionString.split(/\n/);
+        const types = options.type ? await getTypeTable(path) : [];
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].indexOf('func') === -1) continue;
 
@@ -18,7 +19,6 @@ function funcls(path, options) {
             let output = matches[1];
 
             if (options.type) {
-                const types = await getTypeTable(path);
                 const sigIndex = lines[i].indexOf('sig=') + 'sig='.length;
                 const index = parseInt(lines[i].substring(sigIndex, sigIndex + 1));
                 output += ' ' + types[index];
