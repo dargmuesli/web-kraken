@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 const { program } = require('commander');
 const funcls = require('./commands/funcls');
-const opcodecnt = require('./commands/opcodecnt');
+const opcode = require('./commands/opcode');
 
 program
     .command('funcls <path>')
@@ -10,8 +10,9 @@ program
     .action(funcls);
 
 program
-    .command('opcodecnt <path>')
-    .description('Count of each opcode in the wasm file')
-    .action(opcodecnt);
+    .command('opcode <path>')
+    .description( 'Opcodes in the wasm file')
+    .option('-c, --count', 'Show count of each opcode')
+    .action(opcode);
 
 program.parse();
