@@ -1,4 +1,5 @@
-const {spawn} = require("child_process");
+const {childSpawn} = require("../src/util");
+
 
 function funcls(path, options) {
     const child = childSpawn('wasm-objdump', ['-x', '-j', 'Function', path]);
@@ -48,10 +49,6 @@ function getTypeTable(path) {
     });
 }
 
-function childSpawn(command, options) {
-    const root = __dirname.substring(0, __dirname.lastIndexOf('\\'));
-    return spawn('node', [root + '\\node_modules\\wabt\\bin\\' + command].concat(options));
-}
 
 
 module.exports = funcls;
