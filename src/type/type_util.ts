@@ -1,13 +1,13 @@
-const {childSpawn} = require('../util/util');
+import {childSpawn} from "../util/util";
 
-function getTypeTable(path) {
+export function getTypeTable(path: string) : Promise<string[]> {
     return new Promise((resolve) => {
         const child = childSpawn('wasm-objdump', ['-x', '-j', 'Type', path]);
         let result = '';
         child.stdout.on('data', (data) => {
             result += data.toString();
         });
-        const types = [];
+        const types: string[] = [];
         child.stdout.on('end', () => {
             const typeString = result.substring(result.indexOf('- type'));
             const lines = typeString.split(/\n/);
@@ -19,5 +19,3 @@ function getTypeTable(path) {
         });
     });
 }
-
-module.exports = {getTypeTable};

@@ -1,7 +1,7 @@
-const {childSpawn} = require("../src/util/util");
-const {getTypeTable} = require("../src/type/type");
+import {childSpawn} from "../util/util";
+import {getTypeTable} from "../type/type_util";
 
-function funcls(path, options) {
+export function funcls(path: string, options: any) {
     const child = childSpawn('wasm-objdump', ['-x', '-j', 'Function', path]);
     let result = '';
     child.stdout.on('data', (data) => {
@@ -16,7 +16,7 @@ function funcls(path, options) {
 
             const regExp = /<([^>]+)>/;
             const matches = lines[i].match(regExp);
-            if (matches === null) continue;
+            if (!matches) continue;
             let output = matches[1];
 
             if (options.type) {
@@ -28,6 +28,3 @@ function funcls(path, options) {
         }
     });
 }
-
-
-module.exports = funcls;

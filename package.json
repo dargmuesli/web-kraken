@@ -3,9 +3,19 @@
   "version": "0.0.1",
   "dependencies": {
     "commander": "^11.1.0",
+    "figlet": "^1.7.0",
     "wabt": "^1.0.32"
   },
   "bin": {
-    "wasm-analyzer" : "./index.js"
+    "wasm-analyzer": "./dist/index.js"
+  },
+  "main" : "dist/index.js",
+  "devDependencies": {
+    "@types/node": "^20.8.7",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
