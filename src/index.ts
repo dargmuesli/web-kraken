@@ -18,12 +18,14 @@ program
     .command('funcls <path>')
     .description('List all functions of the wasm file')
     .option('-t, --type', 'Show function types')
+    .option('-o, --output <file>', 'Output to file')
     .action(funcls);
 
 program
     .command('opcodels <path>')
     .description('Opcodes in the wasm file')
     .option('-c, --count', 'Show count of each opcode')
+    .option('-o, --output <file>', 'Output to file')
     .action(opcodels);
 
 program.parse(process.argv);

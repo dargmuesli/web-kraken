@@ -1,6 +1,7 @@
 import {getTypeTable} from "../type/type_util";
 import {getFunctionList} from "../function/function_util";
 import {Function} from "../entity/function";
+import * as fs from "fs";
 
 export async function funcls(path: string, options: any) {
     const functionList = await getFunctionList(path);
@@ -18,5 +19,10 @@ export async function funcls(path: string, options: any) {
         }
         return {name: func.getName()};
     });
+
+    if (options.output) {
+        fs.writeFileSync(options.output, JSON.stringify(functionDetails, null, 2));
+        return;
+    }
     console.table(functionDetails);
 }
