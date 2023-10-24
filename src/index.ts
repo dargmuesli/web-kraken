@@ -19,6 +19,7 @@ program
     .description('List all functions of the wasm file')
     .option('-t, --type', 'Show function types')
     .option('-o, --output <file>', 'Output to file')
+    .option('-i, --import' , 'Show imported functions')
     .action(funcls);
 
 program

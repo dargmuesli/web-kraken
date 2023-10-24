@@ -1,4 +1,4 @@
-import {getOpcodeList} from "../opcode/opcode_util";
+import {getOpcodeList} from "../opcode/opcode_parser";
 import {OptionValues} from "commander";
 import {Opcode} from "../entity/opcode";
 import fs from "fs";
