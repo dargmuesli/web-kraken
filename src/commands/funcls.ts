@@ -5,9 +5,12 @@ import * as fs from "fs";
 
 export async function funcls(path: string, options: any) {
     const functionDetails = await getDetails(options, path);
-
     if (options.output) {
-        fs.writeFileSync(options.output, JSON.stringify(functionDetails, null, 2));
+        let output = options.output;
+        if (options.output === true) {
+            output = path.replace(/\.[^/.]+$/, "") + (options.import ? '_import' : '_function') + '.json';
+        }
+        fs.writeFileSync(output, JSON.stringify(functionDetails, null, 2));
         return;
     }
     console.table(functionDetails);

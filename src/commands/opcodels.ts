@@ -17,7 +17,11 @@ export async function opcodels(path: string, options: OptionValues) {
     });
 
     if (options.output) {
-        fs.writeFileSync(options.output, JSON.stringify(opcodeDetails, null, 2));
+        let output = options.output;
+        if (options.output === true) {
+            output = path.replace(/\.[^/.]+$/, "") +'_opcode.json';
+        }
+        fs.writeFileSync(output, JSON.stringify(opcodeDetails, null, 2));
         return;
     }
 
