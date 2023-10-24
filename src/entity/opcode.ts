@@ -3,6 +3,7 @@ export class Opcode {
     constructor(
         private readonly name: string,
         private readonly count: number,
+        private readonly percentage: string,
         private feature?: string
     ) {}
 
@@ -16,5 +17,9 @@ export class Opcode {
 
     public getFeature(): string | undefined {
         return this.feature;
+    }
+
+    public getPercentage(): string {
+        return this.percentage;
     }
 }
