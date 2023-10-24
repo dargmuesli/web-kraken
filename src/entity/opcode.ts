@@ -1,9 +1,9 @@
 
 export class Opcode {
     constructor(
-        public readonly name: string,
-        public readonly count: number,
-        public feature?: string
+        private readonly name: string,
+        private readonly count: number,
+        private feature?: string
     ) {}
 
     public getName(): string {

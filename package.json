@@ -9,8 +9,9 @@
   "bin": {
     "wasm-analyzer": "./dist/index.js"
   },
-  "main" : "dist/index.js",
+  "main": "dist/index.js",
   "devDependencies": {
+    "@types/figlet": "^1.5.7",
     "@types/node": "^20.8.7",
     "typescript": "^5.2.2"
   },

@@ -1,13 +1,18 @@
 import {getOpcodeList} from "../opcode/opcode_util";
 import {OptionValues} from "commander";
+import {Opcode} from "../entity/opcode";
 
 export async function opcodels(path: string, options: OptionValues) {
-    let opcodeList = await getOpcodeList(path);
-    opcodeList.forEach((opcode) => {
+    const opcodeList = await getOpcodeList(path);
+
+    const opcodeDetails = opcodeList.map((opcode : Opcode) => {
         if (options.count) {
-            console.log(opcode.getName() + ' ' + opcode.getCount());
-            return;
+            return {
+                name: opcode.getName(),
+                count: opcode.getCount()
+            };
         }
-        console.log(opcode.getName());
+        return {name: opcode.getName()};
     });
+    console.table(opcodeDetails);
 }

@@ -1,8 +1,9 @@
 #! /usr/bin/env node
-const {Command} = require("commander");
-const figlet = require("figlet");
+
+import {Command} from "commander";
 import {funcls} from "./commands/funcls";
 import {opcodels} from "./commands/opcodels";
+import * as figlet from "figlet";
 
 const program = new Command();
 

@@ -1,30 +1,22 @@
-import {childSpawn} from "../util/util";
 import {getTypeTable} from "../type/type_util";
+import {getFunctionList} from "../function/function_util";
+import {Function} from "../entity/function";
 
-export function funcls(path: string, options: any) {
-    const child = childSpawn('wasm-objdump', ['-x', '-j', 'Function', path]);
-    let result = '';
-    child.stdout.on('data', (data) => {
-        result += data.toString();
-    });
-    child.stdout.on('end', async () => {
-        const functionString = result.substring(result.indexOf('- func'));
-        const lines = functionString.split(/\n/);
-        const types = options.type ? await getTypeTable(path) : [];
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].indexOf('func') === -1) continue;
+export async function funcls(path: string, options: any) {
+    const functionList = await getFunctionList(path);
+    const types = options.type ? await getTypeTable(path) : null;
 
-            const regExp = /<([^>]+)>/;
-            const matches = lines[i].match(regExp);
-            if (!matches) continue;
-            let output = matches[1];
-
-            if (options.type) {
-                const sigIndex = lines[i].indexOf('sig=') + 'sig='.length;
-                const index = parseInt(lines[i].substring(sigIndex, sigIndex + 1));
-                output += ' ' + types[index];
-            }
-            console.log(output);
+    const functionDetails = functionList.map((func: Function) => {
+        if (types) {
+            const type = types[func.getTypeIndex()];
+            const split = type.split('->');
+            return {
+                name: func.getName(),
+                params: split[0].trim(),
+                returns: split[1].trim()
+            };
         }
+        return {name: func.getName()};
     });
+    console.table(functionDetails);
 }
