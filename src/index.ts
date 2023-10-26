@@ -26,6 +26,7 @@ program
     .command('opcodels <path>')
     .description('Opcodes in the wasm file')
     .option('-c, --count', 'Show count of each opcode')
+    .option('-f, --feature', 'Show feature of each opcode')
     .option('-o, --output [file]', 'Output to file')
     .action(opcodels);
 

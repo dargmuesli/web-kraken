@@ -7,15 +7,20 @@ export async function opcodels(path: string, options: OptionValues) {
     const opcodeList = await getOpcodeList(path);
 
     const opcodeDetails = opcodeList.map((opcode: Opcode) => {
-        if (options.count) {
-            return {
-                name: opcode.getName(),
-                count: opcode.getCount(),
-                'percentage(%)': opcode.getPercentage(),
-                feature: opcode.getFeature()
-            };
+        let details = {
+            name: opcode.getName(),
+            count: (options.count ? opcode.getCount() : undefined),
+            'percentage(%)': (options.count ? opcode.getPercentage() : undefined),
+            feature: (options.feature ? opcode.getFeature() : undefined)
         }
-        return {name: opcode.getName()};
+        if (!options.count) {
+            delete details.count;
+            delete details['percentage(%)'];
+        }
+        if (!options.feature) {
+            delete details.feature;
+        }
+        return details;
     });
 
     if (options.output) {
