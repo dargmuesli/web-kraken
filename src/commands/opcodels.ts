@@ -11,7 +11,8 @@ export async function opcodels(path: string, options: OptionValues) {
             return {
                 name: opcode.getName(),
                 count: opcode.getCount(),
-                'percentage(%)': opcode.getPercentage()
+                'percentage(%)': opcode.getPercentage(),
+                feature: opcode.getFeature()
             };
         }
         return {name: opcode.getName()};
