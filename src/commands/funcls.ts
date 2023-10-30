@@ -3,8 +3,8 @@ import {getFunctionList, getImportList} from "../function/function_parser";
 import {Function} from "../entity/function";
 import * as fs from "fs";
 
-export async function funcls(path: string, options: any) {
-    const functionDetails = await getDetails(options, path);
+export async function funcls(path: string, options: any, types?: string[]) {
+    const functionDetails = await getDetails(options, path, types);
 
     if (options.sort === 'name') {
         functionDetails.sort((a: any, b: any) => {
@@ -28,9 +28,9 @@ export async function funcls(path: string, options: any) {
     console.table(functionDetails);
 }
 
-async function getDetails(options: any, path: string) {
+async function getDetails(options: any, path: string, typeList?: string[]) {
     const functionList = options.import ? await getImportList(path) : await getFunctionList(path);
-    const types = options.type ? await getTypeTable(path) : null;
+    const types = options.type ? (typeList ? typeList : await getTypeTable(path)) : null;
 
     return functionList.map((func: Function) => {
         const type = types ? types[func.getTypeIndex()] : null;

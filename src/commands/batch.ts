@@ -2,6 +2,7 @@ import {existsSync, mkdirSync, readdirSync} from "fs";
 import path from "path";
 import {funcls} from "./funcls";
 import {opcodels} from "./opcodels";
+import {getTypeTable} from "../type/type_parser";
 
 export async function batch() {
     console.log('Batch analyzing wasm files in the directory...');
@@ -12,26 +13,29 @@ export async function batch() {
     if (!existsSync('./opcode')) mkdirSync('./opcode');
 
     for (const file of wasmFiles) {
+        const fileName = path.parse(file).name;
+        console.log('Analyzing ' + file + '...');
+
+        const types = await getTypeTable(file);
+
         await funcls(file, {
             type: true,
-            output: './function/' + file.replace(/\.[^/.]+$/, "") + '_function.json'
-        });
+            output: path.join('function', fileName + '_function.json')
+        }, types);
 
         await funcls(file, {
             type: true,
             import: true,
             sort: 'source',
-            output: './import/' + file.replace(/\.[^/.]+$/, "") + '_import.json'
-
-        });
+            output: path.join('import', fileName + '_import.json')
+        }, types);
 
         await opcodels(file, {
             count: true,
             feature: true,
             sort: 'feature',
-            output: './opcode/' + file.replace(/\.[^/.]+$/, "") + '_opcode.json'
+            output: path.join('opcode', fileName + '_opcode.json')
         });
     }
-
     console.log('Batch analyzing wasm files in the directory finished!');
 }
