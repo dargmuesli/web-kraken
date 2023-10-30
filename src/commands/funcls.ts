@@ -5,6 +5,18 @@ import * as fs from "fs";
 
 export async function funcls(path: string, options: any) {
     const functionDetails = await getDetails(options, path);
+
+    if (options.sort === 'name') {
+        functionDetails.sort((a: any, b: any) => {
+            return a.name.localeCompare(b.name);
+        });
+    }
+    if (options.sort === 'source' && options.import) {
+        functionDetails.sort((a: any, b: any) => {
+            return a.source.localeCompare(b.source);
+        });
+    }
+
     if (options.output) {
         let output = options.output;
         if (options.output === true) {

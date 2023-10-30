@@ -20,6 +20,7 @@ program
     .option('-t, --type', 'Show function types')
     .option('-o, --output [file]', 'Output to file', )
     .option('-i, --import' , 'Show imported functions')
+    .option('-s, --sort [name]', 'Sort by name|source|appearance(default)')
     .action(funcls);
 
 program
@@ -28,6 +29,7 @@ program
     .option('-c, --count', 'Show count of each opcode')
     .option('-f, --feature', 'Show feature of each opcode')
     .option('-o, --output [file]', 'Output to file')
+    .option('-s, --sort [sort]', 'Sort by name|feature|count(default)')
     .action(opcodels);
 
 program.parse(process.argv);

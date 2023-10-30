@@ -23,6 +23,17 @@ export async function opcodels(path: string, options: OptionValues) {
         return details;
     });
 
+    if (options.sort === 'name') {
+        opcodeDetails.sort((a: any, b: any) => {
+            return a.name.localeCompare(b.name);
+        });
+    }
+    if (options.sort === 'feature' && options.feature) {
+        opcodeDetails.sort((a: any, b: any) => {
+            return a.feature.localeCompare(b.feature);
+        });
+    }
+
     if (options.output) {
         let output = options.output;
         if (options.output === true) {
