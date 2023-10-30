@@ -4,6 +4,7 @@ import {Command} from "commander";
 import {funcls} from "./commands/funcls";
 import {opcodels} from "./commands/opcodels";
 import * as figlet from "figlet";
+import {batch} from "./commands/batch";
 
 const program = new Command();
 
@@ -31,6 +32,11 @@ program
     .option('-o, --output [file]', 'Output to file')
     .option('-s, --sort [sort]', 'Sort by name|feature|count(default)')
     .action(opcodels);
+
+program
+    .command('batch')
+    .description('Batch analyze wasm files in the directory')
+    .action(batch);
 
 program.parse(process.argv);
 
