@@ -5,6 +5,7 @@ import {funcls} from "./commands/funcls";
 import {opcodels} from "./commands/opcodels";
 import * as figlet from "figlet";
 import {batch} from "./commands/batch";
+import {gitcrawler} from "./commands/gitcrawler";
 
 const program = new Command();
 
@@ -37,6 +38,13 @@ program
     .command('batch')
     .description('Batch analyze wasm files in the directory')
     .action(batch);
+
+program
+    .command('gitcrawler <token>')
+    .option('-p, --page <page>', 'Page number of the search result')
+    .option('-n, --number <number>', 'Number of results to crawl')
+    .description('Crawl github repositories for wasm/wat files')
+    .action(gitcrawler);
 
 program.parse(process.argv);
 
