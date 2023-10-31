@@ -6,6 +6,7 @@ import {opcodels} from "./commands/opcodels";
 import * as figlet from "figlet";
 import {batch} from "./commands/batch";
 import {gitcrawler} from "./commands/gitcrawler";
+import {sectionls} from "./commands/sectionls";
 
 const program = new Command();
 
@@ -45,6 +46,12 @@ program
     .option('-n, --number <number>', 'Number of results to crawl')
     .description('Crawl github repositories for wasm/wat files')
     .action(gitcrawler);
+
+program
+    .command('sectionls <path>')
+    .description('List all custom sections of the wasm file')
+    .option('-o, --output [file]', 'Output to file')
+    .action(sectionls);
 
 program.parse(process.argv);
 

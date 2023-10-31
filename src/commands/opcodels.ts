@@ -37,7 +37,6 @@ export async function opcodels(path: string, options: OptionValues) {
     if (options.output) {
         let output = options.output;
         if (options.output === true) {
-            path
             output = path.replace(/\.[^/.]+$/, "") +'_opcode.json';
         }
         fs.writeFileSync(output, JSON.stringify(opcodeDetails, null, 2));
