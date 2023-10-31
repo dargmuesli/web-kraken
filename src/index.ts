@@ -37,6 +37,10 @@ program
 
 program
     .command('batch')
+    .option('-i, --import', 'Show imported functions')
+    .option('-f, --function', 'Show functions')
+    .option('-o, --opcode', 'Show opcodes')
+    .option('-s, --section', 'Show sections')
     .description('Batch analyze wasm files in the directory')
     .action(batch);
 
