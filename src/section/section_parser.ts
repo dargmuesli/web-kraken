@@ -1,19 +1,27 @@
-import {childSpawn} from "../util/util";
+import {getCommandResult} from "../util/util";
+import {Section} from "../entity/section";
 
-export function getCustomSectionList(path: string): Promise<string[]> {
-    return new Promise((resolve) => {
-        const child = childSpawn('wasm-objdump', ['-h', path]);
-        let result = '';
-        child.stdout.on('data', (data) => {
-            result += data.toString();
+export async function getCustomSectionList(path: string) {
+    const result = await getCommandResult('wasm-objdump', ['-h', path]);
+    const sections: Section[] = [];
+    for (let string of result
+        .split(/\n/)
+        .filter((line) => line.trim().startsWith('Custom'))) {
+        const name = string.substring(string.indexOf('"') + 1, string.lastIndexOf('"'));
+        const raw = await getSectionData(path, name);
+        sections.push(new Section(name, raw));
+    }
+    return sections;
+}
+
+
+async function getSectionData(path: string, name: string) {
+    const result = await getCommandResult('wasm-objdump', ['-j', name, path, '-s']);
+    const dataLines = result
+        .split(/\n/)
+        .map((line) => {
+            return line.substring(line.length - 16).trim();
         });
-        child.stdout.on('end', () => {
-            resolve(result
-                .split(/\n/)
-                .filter((line) => line.trim().startsWith('Custom'))
-                .map((line) => {
-                    return line.substring(line.indexOf('"') + 1, line.lastIndexOf('"'))
-                }));
-        });
-    });
+
+    return dataLines.slice(dataLines.indexOf('section Custom:') + 1).join('').trim();
 }

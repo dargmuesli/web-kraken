@@ -45,7 +45,7 @@ export async function batch(options: OptionValues) {
 
         if (options.section)
         await sectionls(file, {
-            output: path.join('sections', fileName + '_section.txt')
+            output: path.join('sections', fileName + '_section.json')
         });
     }
     console.log('Batch analyzing wasm files in the directory finished!');

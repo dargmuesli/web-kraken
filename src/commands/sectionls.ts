@@ -3,16 +3,27 @@ import {OptionValues} from "commander";
 import fs from "fs";
 
 export async function sectionls(path: string, options: OptionValues) {
-    const strings = await getCustomSectionList(path);
-    if (strings.length === 0) return;
-    if (options.output) {
-        let output = options.output;
-        if (options.output === true) {
-            output = path.replace(/\.[^/.]+$/, "") +'_section.txt';
-        }
-        fs.writeFileSync(output, strings.join('\n'));
+    const sectionList = await getCustomSectionList(path);
+    if (sectionList.length === 0) {
         return;
     }
 
-    console.table(strings.join('\n'));
+    const details = sectionList.map((section) => {
+        return {
+            name: section.getName(),
+            raw: section.getRaw()
+        };
+    });
+
+
+    if (options.output) {
+        let output = options.output;
+        if (options.output === true) {
+            output = path.replace(/\.[^/.]+$/, "") + '_section.json';
+        }
+        fs.writeFileSync(output, JSON.stringify(details, null, 2));
+        return;
+    }
+
+    console.table(details);
 }
