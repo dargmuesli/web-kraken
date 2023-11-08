@@ -8,22 +8,14 @@ export async function sectionls(path: string, options: OptionValues) {
         return;
     }
 
-    const details = sectionList.map((section) => {
-        return {
-            name: section.getName(),
-            raw: section.getRaw()
-        };
-    });
-
-
     if (options.output) {
         let output = options.output;
         if (options.output === true) {
             output = path.replace(/\.[^/.]+$/, "") + '_section.json';
         }
-        fs.writeFileSync(output, JSON.stringify(details, null, 2));
+        fs.writeFileSync(output, JSON.stringify(sectionList, null, 2));
         return;
     }
 
-    console.table(details);
+    console.table(sectionList, ['name', 'raw']);
 }
