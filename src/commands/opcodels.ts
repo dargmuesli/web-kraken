@@ -5,6 +5,9 @@ import fs from "fs";
 
 export async function opcodels(path: string, options: OptionValues) {
     const opcodeList = await getOpcodeList(path);
+    if (opcodeList.length === 0) {
+        return;
+    }
 
     const opcodeDetails = opcodeList.map((opcode: Opcode) => {
         let details = {

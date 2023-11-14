@@ -4,6 +4,10 @@ import {getFeature, getFeatureMap} from "./feature_parser";
 
 export async function getOpcodeList(path: string): Promise<Opcode[]> {
     const result = await getCommandResult('wasm-opcodecnt', [path, '--enable-all']);
+    if (result === '') {
+        return [];
+    }
+
     const opcodeList: Opcode[] = [];
     let strings = result.split(/\n\s*\n/);  // strings[0] == total, strings[1] == opcodes
     const total = parseInt(strings[0].split(': ')[1]);
