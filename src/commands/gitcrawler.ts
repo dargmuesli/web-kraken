@@ -38,11 +38,7 @@ async function convertWat(wabtModule: any, name: string, data: any) {
     try {
         let wasmModule = wabtModule.parseWat(name, data.toString());
         let {buffer} = wasmModule.toBinary({});
-        let i = 0;
-        while (fs.existsSync(name)) {
-            name = name.replace('.wasm', `_${i}.wasm`);
-            i++;
-        }
+        name = getFileName(name);
         writeFileSync(name, Buffer.from(buffer));
     } catch (e) {
         //
@@ -54,13 +50,18 @@ function extractWasmFromJs(data: any, name: string) {
     let regex = /AGFzbQ[^"'"'"'`]*/g
     data.toString().match(regex)?.forEach((match: string) => {
         let result = Buffer.from(match, 'base64');
-        let i = 0;
-        while (fs.existsSync(name)) {
-            name = name.replace('.wasm', `_${i}.wasm`);
-            i++;
-        }
+        name = getFileName(name);
         writeFileSync(name, result);
     });
+}
+
+function getFileName(name: string) {
+    if (!fs.existsSync(name)) return name;
+    let regex = /[(]\d+[)].wasm/g;
+    let match = name.match(regex);
+    if (!match) return getFileName(name.replace('.wasm', '(2).wasm'));
+    let number = parseInt(match[0].replace('(', '').replace(').wasm', ''));
+    return getFileName(name.replace(regex, `(${number + 1}).wasm`));
 }
 
 
