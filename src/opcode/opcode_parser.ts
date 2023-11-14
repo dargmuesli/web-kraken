@@ -16,7 +16,11 @@ export async function getOpcodeList(path: string): Promise<Opcode[]> {
 
         let count = parseInt(parts[1].trim());
         const percentage = (count / total * 100).toFixed(5);
-        opcodeList.push(new Opcode(opcode, count, percentage, getFeature(opcode, featureMap)));
+        let feature = getFeature(opcode, featureMap);
+        if (feature === undefined) {
+            console.log(path + ": " + opcode);
+        }
+        opcodeList.push(new Opcode(opcode, count, percentage, feature));
     }
     return opcodeList;
 }
