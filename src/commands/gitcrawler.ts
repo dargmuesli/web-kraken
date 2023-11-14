@@ -9,6 +9,7 @@ export async function gitcrawler(token: string, options: OptionValues) {
         auth: token,
         userAgent: 'wasm-analyzer'
     });
+    console.log('Crawling github repositories for wasm files...');
 
     // 'wasm in:file language:wasm'
 
@@ -32,36 +33,48 @@ export async function gitcrawler(token: string, options: OptionValues) {
         let name = path.basename(item.path).split('.')[0] + '.wasm';
         options.magic ? extractWasmFromJs(data, name) : await convertWat(wabtModule, name, data);
     }
+    console.log('Crawling github repositories for wasm files finished!');
 }
 
 async function convertWat(wabtModule: any, name: string, data: any) {
     try {
         let wasmModule = wabtModule.parseWat(name, data.toString());
-        let {buffer} = wasmModule.toBinary({});
+        let buffer = Buffer.from(wasmModule.toBinary({}))
+        if (duplicateExists(buffer)) return;
         name = getFileName(name);
-        writeFileSync(name, Buffer.from(buffer));
+        writeFileSync(name, buffer);
     } catch (e) {
         //
     }
 }
 
-
 function extractWasmFromJs(data: any, name: string) {
     let regex = /AGFzbQ[^"'"'"'`]*/g
     data.toString().match(regex)?.forEach((match: string) => {
         let result = Buffer.from(match, 'base64');
+        if (duplicateExists(result)) return;
         name = getFileName(name);
         writeFileSync(name, result);
     });
 }
 
-function getFileName(name: string) {
+function getFileName(name: string): string {
     if (!fs.existsSync(name)) return name;
     let regex = /[(]\d+[)].wasm/g;
     let match = name.match(regex);
     if (!match) return getFileName(name.replace('.wasm', '(2).wasm'));
     let number = parseInt(match[0].replace('(', '').replace(').wasm', ''));
     return getFileName(name.replace(regex, `(${number + 1}).wasm`));
+}
+
+function duplicateExists(result: Buffer): boolean {
+    let files = fs.readdirSync(process.cwd());
+    for (const file of files) {
+        if (fs.statSync(file).isDirectory()) continue;
+        if (path.extname(file) !== '.wasm') continue;
+        if (fs.readFileSync(file).equals(result)) return true;
+    }
+    return false;
 }
 
 
