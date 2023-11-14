@@ -16,40 +16,56 @@ export async function batch(options: OptionValues) {
     if (!existsSync('./sections') && options.section) mkdirSync('./sections');
 
     for (const file of wasmFiles) {
-        try {
-            const fileName = path.parse(file).name;
-            console.log('Analyzing ' + file + '...');
+        const fileName = path.parse(file).name;
+        console.log('Analyzing ' + file + '...');
 
-            const types = await getTypeTable(file);
+        const types = await getTypeTable(file);
 
-            if (options.function)
+        if (options.function) {
+            try {
                 await funcls(file, {
                     type: true,
                     output: path.join('function', fileName + '_function.json')
                 }, types);
+            } catch (e) {
+                console.log(e)
+            }
+        }
 
-            if (options.import)
+        if (options.import) {
+            try {
                 await funcls(file, {
                     type: true,
                     import: true,
                     sort: 'source',
                     output: path.join('import', fileName + '_import.json')
                 }, types);
+            } catch (e) {
+                console.log(e)
+            }
+        }
 
-            if (options.opcode)
+        if (options.opcode) {
+            try {
                 await opcodels(file, {
                     count: true,
                     feature: true,
                     sort: 'feature',
                     output: path.join('opcode', fileName + '_opcode.json')
                 });
+            } catch (e) {
+                console.log(e)
+            }
+        }
 
-            if (options.section)
+        if (options.section) {
+            try {
                 await sectionls(file, {
                     output: path.join('sections', fileName + '_section.json')
                 });
-        } catch (e) {
-            console.log(e);
+            } catch (e) {
+                console.log(e)
+            }
         }
     }
     console.log('Batch analyzing wasm files in the directory finished!');
