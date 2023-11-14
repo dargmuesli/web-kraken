@@ -13,7 +13,7 @@ export async function gitcrawler(token: string, options: OptionValues) {
     // 'wasm in:file language:wasm'
 
     const searchResult = await octokit.rest.search.code({
-        q: 'language:WebAssembly',
+        q: options.magic ? 'AGFzbQ language:JavaScript ' : 'language:WebAssembly',
         per_page: options.number ? options.number : 100,
         page: options.page ? options.page : 1
     });
@@ -29,26 +29,38 @@ export async function gitcrawler(token: string, options: OptionValues) {
             repo: item.repository.name,
             path: item.path
         });
-
-        let name = path.basename(item.path).split('.')[0] + '.wat';
-        writeFileSync(name, data.toString());
-
-        try {
-            let wasmModule = wabtModule.parseWat(name, data.toString());
-            let {buffer} = wasmModule.toBinary({});
-            fs.unlinkSync(name);
-            name = name.replace('.wat', '.wasm');
-            let i = 0;
-            while (fs.existsSync(name)) {
-                name = name.replace('.wasm', `_${i}.wasm`);
-                i++;
-            }
-            writeFileSync(name.replace('.wat', '.wasm'), Buffer.from(buffer));
-        } catch (e) {
-            // delete the file
-            fs.unlinkSync(name);
-        }
+        let name = path.basename(item.path).split('.')[0] + '.wasm';
+        options.magic ? extractWasmFromJs(data, name) : await convertWat(wabtModule, name, data);
     }
+}
+
+async function convertWat(wabtModule: any, name: string, data: any) {
+    try {
+        let wasmModule = wabtModule.parseWat(name, data.toString());
+        let {buffer} = wasmModule.toBinary({});
+        let i = 0;
+        while (fs.existsSync(name)) {
+            name = name.replace('.wasm', `_${i}.wasm`);
+            i++;
+        }
+        writeFileSync(name, Buffer.from(buffer));
+    } catch (e) {
+        //
+    }
+}
+
+
+function extractWasmFromJs(data: any, name: string) {
+    let regex = /AGFzbQ[^"'"'"'`]*/g
+    data.toString().match(regex)?.forEach((match: string) => {
+        let result = Buffer.from(match, 'base64');
+        let i = 0;
+        while (fs.existsSync(name)) {
+            name = name.replace('.wasm', `_${i}.wasm`);
+            i++;
+        }
+        writeFileSync(name, result);
+    });
 }
 
 
