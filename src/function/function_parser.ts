@@ -31,6 +31,7 @@ export async function getImportList(path: string): Promise<Function[]> {
 
     for (let i = 0; i < lines.length; i++) {
         if (lines[i].indexOf('func') === -1) continue;
+        if (lines[i].indexOf('sig=') === -1) continue;
         const parts = lines[i].split('<-');
 
         const cutIndex = parts[1].lastIndexOf('.');

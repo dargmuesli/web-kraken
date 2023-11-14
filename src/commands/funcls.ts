@@ -5,7 +5,9 @@ import fs from "fs";
 
 export async function funcls(path: string, options: any, types?: string[]) {
     const functionDetails = await getDetails(options, path, types);
-
+    if (functionDetails.length === 0) {
+        return;
+    }
     if (options.sort === 'name') {
         functionDetails.sort((a: any, b: any) => {
             return a.name.localeCompare(b.name);
