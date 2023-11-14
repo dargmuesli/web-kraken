@@ -1,7 +1,7 @@
 import {getTypeTable} from "../type/type_parser";
 import {getFunctionList, getImportList} from "../function/function_parser";
 import {Function} from "../entity/function";
-import * as fs from "fs";
+import fs from "fs";
 
 export async function funcls(path: string, options: any, types?: string[]) {
     const functionDetails = await getDetails(options, path, types);

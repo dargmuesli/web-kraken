@@ -2,6 +2,8 @@
   "name": "WASM-Analyzer",
   "version": "0.0.1",
   "dependencies": {
+    "@webassemblyjs/ast": "^1.11.6",
+    "@webassemblyjs/wasm-parser": "^1.11.6",
     "commander": "^11.1.0",
     "figlet": "^1.7.0",
     "octokit": "^3.1.1",

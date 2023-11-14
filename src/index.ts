@@ -7,6 +7,7 @@ import * as figlet from "figlet";
 import {batch} from "./commands/batch";
 import {gitcrawler} from "./commands/gitcrawler";
 import {sectionls} from "./commands/sectionls";
+import {ast} from "./commands/ast";
 
 const program = new Command();
 
@@ -48,7 +49,7 @@ program
     .command('gitcrawler <token>')
     .option('-p, --page <page>', 'Page number of the search result')
     .option('-n, --number <number>', 'Number of results to crawl')
-    .description('Crawl github repositories for wasm/wat files')
+    .description('Crawl github repositories for wat files')
     .action(gitcrawler);
 
 program
@@ -56,6 +57,11 @@ program
     .description('List all custom sections of the wasm file')
     .option('-o, --output [file]', 'Output to file')
     .action(sectionls);
+
+program
+    .command('ast <path>')
+    .description('Ast test command')
+    .action(ast);
 
 program.parse(process.argv);
 
