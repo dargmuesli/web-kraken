@@ -13,40 +13,44 @@ export async function batch(options: OptionValues) {
     if (!existsSync('./import') && options.import) mkdirSync('./import');
     if (!existsSync('./function') && options.function) mkdirSync('./function');
     if (!existsSync('./opcode') && options.opcode) mkdirSync('./opcode');
-    if (!existsSync('./sections' && options.section)) mkdirSync('./sections');
+    if (!existsSync('./sections') && options.section) mkdirSync('./sections');
 
     for (const file of wasmFiles) {
-        const fileName = path.parse(file).name;
-        console.log('Analyzing ' + file + '...');
+        try {
+            const fileName = path.parse(file).name;
+            console.log('Analyzing ' + file + '...');
 
-        const types = await getTypeTable(file);
+            const types = await getTypeTable(file);
 
-        if (options.function)
-        await funcls(file, {
-            type: true,
-            output: path.join('function', fileName + '_function.json')
-        }, types);
+            if (options.function)
+                await funcls(file, {
+                    type: true,
+                    output: path.join('function', fileName + '_function.json')
+                }, types);
 
-        if (options.import)
-        await funcls(file, {
-            type: true,
-            import: true,
-            sort: 'source',
-            output: path.join('import', fileName + '_import.json')
-        }, types);
+            if (options.import)
+                await funcls(file, {
+                    type: true,
+                    import: true,
+                    sort: 'source',
+                    output: path.join('import', fileName + '_import.json')
+                }, types);
 
-        if (options.opcode)
-        await opcodels(file, {
-            count: true,
-            feature: true,
-            sort: 'feature',
-            output: path.join('opcode', fileName + '_opcode.json')
-        });
+            if (options.opcode)
+                await opcodels(file, {
+                    count: true,
+                    feature: true,
+                    sort: 'feature',
+                    output: path.join('opcode', fileName + '_opcode.json')
+                });
 
-        if (options.section)
-        await sectionls(file, {
-            output: path.join('sections', fileName + '_section.json')
-        });
+            if (options.section)
+                await sectionls(file, {
+                    output: path.join('sections', fileName + '_section.json')
+                });
+        } catch (e) {
+            console.log(e);
+        }
     }
     console.log('Batch analyzing wasm files in the directory finished!');
 }
