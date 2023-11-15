@@ -19,6 +19,12 @@ export async function funcls(path: string, options: any, types?: string[]) {
         });
     }
 
+    if (!options.import) {
+        functionDetails.sort((a: any, b: any) => {
+            return a.exported === b.exported ? 0 : a.exported ? -1 : 1;
+        });
+    }
+
     if (options.output) {
         let output = options.output;
         if (options.output === true) {
@@ -40,6 +46,7 @@ async function getDetails(options: any, path: string, typeList?: string[]) {
         let details = {
             name: func.getName(),
             source: func.getSource(),
+            exported: func.getExported(),
             params: (split ? split[0].trim() : undefined),
             returns: (split ? split[1].trim() : undefined)
         }
@@ -49,6 +56,8 @@ async function getDetails(options: any, path: string, typeList?: string[]) {
         }
         if (!options.import) {
             delete details.source;
+        } else {
+            delete details.exported;
         }
         return details;
     });

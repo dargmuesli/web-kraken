@@ -2,6 +2,8 @@ import {getCommandResult} from "../util/util";
 import {Function} from "../entity/function";
 
 export async function getFunctionList(path: string): Promise<Function[]> {
+    const exportList = await getExportList(path);
+
     const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Function', path]);
     const functionString = result.substring(result.indexOf('- func'));
     const lines = functionString.split(/\n/);
@@ -18,7 +20,7 @@ export async function getFunctionList(path: string): Promise<Function[]> {
         const sigIndex = lines[i].indexOf('sig=') + 'sig='.length;
         const typeIndex = parseInt(lines[i].substring(sigIndex, sigIndex + 1));
 
-        functionList.push(new Function(name, typeIndex));
+        functionList.push(new Function(name, typeIndex, exportList.indexOf(name) !== -1));
     }
     return functionList;
 }
@@ -39,7 +41,20 @@ export async function getImportList(path: string): Promise<Function[]> {
         const name = parts[1].substring(cutIndex + 1);
 
         const type = parseInt(parts[0].split('sig=')[1].split(' ')[0]);
-        functionList.push(new Function(name, type, source));
+        functionList.push(new Function(name, type, undefined, source));
     }
     return functionList;
+}
+
+export async function getExportList(path: string): Promise<String[]> {
+    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Export', path]);
+    const lines = result.split(/\n/);
+    const regex = /"[^"]+"/g;
+    const exportList: String[] = [];
+    for (let line of lines) {
+        const regExpMatchArray = line.match(regex);
+        if (!regExpMatchArray) continue;
+        exportList.push(regExpMatchArray[0].substring(1, regExpMatchArray[0].length - 1));
+    }
+    return exportList;
 }
