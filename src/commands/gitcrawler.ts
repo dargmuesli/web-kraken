@@ -1,5 +1,5 @@
 import {Octokit} from "octokit";
-import fs, {writeFileSync} from "fs";
+import fs, {existsSync, mkdirSync, writeFileSync} from "fs";
 import path from "path";
 import wabt from "wabt";
 import {OptionValues} from "commander";
@@ -30,22 +30,22 @@ export async function gitcrawler(token: string, options: OptionValues) {
             repo: item.repository.name,
             path: item.path
         });
-        let name = path.basename(item.path).split('.')[0] + '.wasm';
-        options.magic ? extractWasmFromJs(data, name) : await convertWat(wabtModule, name, data);
+        let name = getFileName(path.basename(item.path).split('.')[0] + '.wasm');
+        try {
+            options.magic ? extractWasmFromJs(data, name) : await convertWat(wabtModule, name, data);
+        } catch (e) {
+            continue;
+        }
+        saveSource(item, name, options.magic ? 'magic' : 'wat');
     }
     console.log('Crawling github repositories for wasm files finished!');
 }
 
 async function convertWat(wabtModule: any, name: string, data: any) {
-    try {
-        let wasmModule = wabtModule.parseWat(name, data.toString());
-        let buffer = Buffer.from(wasmModule.toBinary({}))
-        if (duplicateExists(buffer)) return;
-        name = getFileName(name);
-        writeFileSync(name, buffer);
-    } catch (e) {
-        //
-    }
+    let wasmModule = wabtModule.parseWat(name, data.toString());
+    let buffer = Buffer.from(wasmModule.toBinary({}))
+    if (duplicateExists(buffer)) return;
+    writeFileSync(name, buffer);
 }
 
 function extractWasmFromJs(data: any, name: string) {
@@ -53,7 +53,6 @@ function extractWasmFromJs(data: any, name: string) {
     data.toString().match(regex)?.forEach((match: string) => {
         let result = Buffer.from(match, 'base64');
         if (duplicateExists(result)) return;
-        name = getFileName(name);
         writeFileSync(name, result);
     });
 }
@@ -75,6 +74,16 @@ function duplicateExists(result: Buffer): boolean {
         if (fs.readFileSync(file).equals(result)) return true;
     }
     return false;
+}
+
+function saveSource(item: any, name: string, type: string) {
+    if (!existsSync('./sources')) mkdirSync('./sources');
+    const sources = {
+        repository: item.repository.html_url,
+        path: item.path,
+        type: type
+    };
+    writeFileSync(path.join('sources', name.replace('.wasm', '_sources.json')), JSON.stringify(sources, null, 2))
 }
 
 
