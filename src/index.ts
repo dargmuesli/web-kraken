@@ -47,9 +47,9 @@ program
 
 program
     .command('gitcrawler <token>')
-    .option('-p, --page <page>', 'Page number of the search result')
     .option('-n, --number <number>', 'Number of results to crawl')
     .option('-m, --magic', 'Use magic number to detect wasm files embedded in js files')
+    .option('-a, --all', 'Crawl for all possible files')
     .description('Crawl github repositories for wat files')
     .action(gitcrawler);
 

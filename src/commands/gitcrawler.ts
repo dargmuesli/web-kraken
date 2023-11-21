@@ -11,50 +11,67 @@ export async function gitcrawler(token: string, options: OptionValues) {
     });
     console.log('Crawling github repositories for wasm files...');
 
-    // 'wasm in:file language:wasm'
-
-    const searchResult = await octokit.rest.search.code({
-        q: options.magic ? 'AGFzbQ language:JavaScript ' : 'language:WebAssembly',
-        per_page: options.number ? options.number : 100,
-        page: options.page ? options.page : 1
-    });
-
     let wabtModule = await wabt();
 
-    for (const item of searchResult.data.items) {
-        let {data} = await octokit.rest.repos.getContent({
-            mediaType: {
-                format: "raw",
-            },
-            owner: item.repository.owner.login,
-            repo: item.repository.name,
-            path: item.path
+    let page = 1;
+    let numberOfFiles = options.number ? options.number : 1000;
+
+    while (numberOfFiles > 0 || options.all) {
+        const searchResult = await octokit.rest.search.code({
+            q: options.magic ? 'AGFzbQ language:JavaScript ' : 'language:WebAssembly',
+            per_page: 100,
+            page: page
         });
-        let name = getFileName(path.basename(item.path).split('.')[0] + '.wasm');
-        try {
-            options.magic ? extractWasmFromJs(data, name) : await convertWat(wabtModule, name, data);
-        } catch (e) {
-            continue;
+        page++;
+
+        if (searchResult.data.items.length === 0) break;
+
+        for (const item of searchResult.data.items) {
+            let {data} = await octokit.rest.repos.getContent({
+                mediaType: {
+                    format: "raw",
+                },
+                owner: item.repository.owner.login,
+                repo: item.repository.name,
+                path: item.path
+            });
+            let name = path.basename(item.path).split('.')[0] + '.wasm';
+            try {
+                let number = options.magic ? extractWasmFromJs(data, name, item) : convertWat(wabtModule, name, data, item);
+                numberOfFiles -= number;
+            } catch (e) {
+                continue;
+            }
+            //saveSource(item, name, options.magic ? 'magic' : 'wat');
+            if (numberOfFiles <= 0 && !options.all) break;
         }
-        saveSource(item, name, options.magic ? 'magic' : 'wat');
+        if (numberOfFiles <= 0 && !options.all) break;
     }
     console.log('Crawling github repositories for wasm files finished!');
 }
 
-async function convertWat(wabtModule: any, name: string, data: any) {
+function convertWat(wabtModule: any, name: string, data: any, item: any): number {
     let wasmModule = wabtModule.parseWat(name, data.toString());
     let buffer = Buffer.from(wasmModule.toBinary({}))
-    if (duplicateExists(buffer)) return;
+    if (duplicateExists(buffer)) return 0;
+    name = getFileName(name);
     writeFileSync(name, buffer);
+    saveSource(item, name, 'wat');
+    return 1;
 }
 
-function extractWasmFromJs(data: any, name: string) {
+function extractWasmFromJs(data: any, name: string, item: any): number {
     let regex = /AGFzbQ[^"'"'"'`]*/g
+    let filesSaved = 0;
     data.toString().match(regex)?.forEach((match: string) => {
         let result = Buffer.from(match, 'base64');
         if (duplicateExists(result)) return;
+        name = getFileName(name);
         writeFileSync(name, result);
+        saveSource(item, name, 'magic');
+        filesSaved++;
     });
+    return filesSaved;
 }
 
 function getFileName(name: string): string {
