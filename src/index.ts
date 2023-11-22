@@ -8,6 +8,7 @@ import {batch} from "./commands/batch";
 import {gitcrawler} from "./commands/gitcrawler";
 import {sectionls} from "./commands/sectionls";
 import {ast} from "./commands/ast";
+import {analyze} from "./commands/analyze";
 
 const program = new Command();
 
@@ -63,6 +64,11 @@ program
     .command('ast <path>')
     .description('Ast test command')
     .action(ast);
+
+program
+    .command('analyze [file]')
+    .description('Analyze wasm files in the directory')
+    .action(analyze);
 
 program.parse(process.argv);
 
