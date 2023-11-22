@@ -37,12 +37,19 @@ export async function opcodels(path: string, options: OptionValues) {
         });
     }
 
+    const differentFeatures = opcodeDetails.map((opcode: any) => opcode.feature).filter((value: any, index: any, self: any) => self.indexOf(value) === index);
+
+    const json = {
+        features: differentFeatures,
+        opcodes: opcodeDetails
+    }
+
     if (options.output) {
         let output = options.output;
         if (options.output === true) {
-            output = path.replace(/\.[^/.]+$/, "") +'_opcode.json';
+            output = path.replace(/\.[^/.]+$/, "") + '_opcode.json';
         }
-        fs.writeFileSync(output, JSON.stringify(opcodeDetails, null, 2));
+        fs.writeFileSync(output, JSON.stringify(json, null, 2));
         return;
     }
 
