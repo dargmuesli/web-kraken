@@ -1,4 +1,4 @@
-import {readFileSync} from "fs";
+import {readFileSync, writeFileSync} from "fs";
 import {decode} from "@webassemblyjs/wasm-parser/lib/decoder.js";
 import {getSectionMetadatas} from "@webassemblyjs/ast/lib/utils.js";
 import {traverse} from "@webassemblyjs/ast/lib/traverse.js";
@@ -12,9 +12,19 @@ export function ast(path: string) {
 
     const ast = decode(binary, decoderOpts);
 
-    console.log(ast.body[0]);
+    const functionNames = ast.body[0].metadata.functionNames;
 
+    if (!functionNames) return;
+
+    let output = './ast/' + path.replace(/\.[^/.]+$/, "") + '_ast.json';
+
+    writeFileSync(output, JSON.stringify(functionNames, null, 2));
+    return;
+
+    /*
     ast.body[0].fields.filter((field: any) => field.type !== 'Data').forEach((field: any) => console.log(field));
+
+     */
 
 
     /*
@@ -36,8 +46,6 @@ export function ast(path: string) {
     get producers
     console.log(ast.body[0].metadata.producers[0].producers);
      */
-
-
 
 
     /*
