@@ -58,12 +58,10 @@ export function analyze(file: string, options: OptionValues) {
         }
     });
 
-    const averageNumberOfExportedFunctions = getAverageNumberOfExportedFunctions(fileDetails);
-    const averageNumberOfImportedFunctions = getAverageNumberOfImportedFunctions(fileDetails);
-    const percentageOfLanguageKnown = getPercentageOfLanguageKnown(fileDetails);
-    console.log('Average number of exported functions: ' + averageNumberOfExportedFunctions);
-    console.log('Average number of imported functions: ' + averageNumberOfImportedFunctions);
-    console.log('Percentage of language known: ' + percentageOfLanguageKnown + '%');
+    console.log('Average number of exported functions: ' + getAverageNumberOfExportedFunctions(fileDetails));
+    console.log('Average number of imported functions: ' + getAverageNumberOfImportedFunctions(fileDetails));
+    console.log('Language known: ' + getNumberOfLanguageKnown(fileDetails) + '/' + fileDetails.length);
+    console.log('With detected features: ' + getNumberOfWasmsWithFeatures(fileDetails) + '/' + fileDetails.length);
 
 
     writeFileSync('details.json', JSON.stringify(fileDetails, null, 2));
@@ -81,10 +79,15 @@ function getAverageNumberOfImportedFunctions(fileDetails: any): number {
     return Math.round(reduce * 100) / 100;
 }
 
-function getPercentageOfLanguageKnown(fileDetails: any): number{
-    const total = fileDetails.filter((file: any) => {
+function getNumberOfLanguageKnown(fileDetails: any): number{
+    return fileDetails.filter((file: any) => {
         return file.sections.filter((section: any) => section.name === 'producers' && section.language).length > 0;
     }).length;
-    const reduce = total / fileDetails.length;
-    return Math.round(reduce * 100);
+}
+
+function getNumberOfWasmsWithFeatures(fileDetails: any): number{
+    return fileDetails.filter((file: any) => {
+        const number = file.features.indexOf('default') === -1 ? 0 : 1;
+        return file.features.length > number;
+    }).length;
 }
