@@ -5,7 +5,6 @@ import {funcls} from "./commands/funcls";
 import {opcodels} from "./commands/opcodels";
 import * as figlet from "figlet";
 import {batch} from "./commands/batch";
-import {gitcrawler} from "./commands/gitcrawler";
 import {sectionls} from "./commands/sectionls";
 import {ast} from "./commands/ast";
 import {analyze} from "./commands/analyze";
@@ -46,13 +45,6 @@ program
     .description('Batch analyze wasm files in the directory')
     .action(batch);
 
-program
-    .command('gitcrawler <token>')
-    .option('-n, --number <number>', 'Number of results to crawl')
-    .option('-m, --magic', 'Use magic number to detect wasm files embedded in js files')
-    .option('-a, --all', 'Crawl for all possible files')
-    .description('Crawl github repositories for wat files')
-    .action(gitcrawler);
 
 program
     .command('sectionls <path>')
