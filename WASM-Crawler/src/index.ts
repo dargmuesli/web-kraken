@@ -6,7 +6,7 @@ import {npm} from "./commands/npm";
 const program = new Command();
 
 program
-    .command('npm')
+    .command('npm <db>')
     .description('Crawl npm packages for wasm files')
     .action(npm);
 

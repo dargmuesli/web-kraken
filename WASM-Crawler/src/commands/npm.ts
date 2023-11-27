@@ -1,4 +1,8 @@
 import PouchDB from 'pouchdb/lib/index.js';
+import * as PouchDBFind from "pouchdb-find/lib/index.js";
+
+PouchDB.plugin(PouchDBFind);
+
 import https from "https";
 import http from "http";
 import stream from "stream";
@@ -7,20 +11,38 @@ import gunzip from "gunzip-maybe";
 import * as tar from "tar-stream";
 
 
-export async function npm() {
-    const db = new PouchDB('http://127.0.0.1:5984/npm');
-    /*
-    const findResponse = await db.find({
-        selector: {
-            _id: '--can-you-install'
-        }
-    });
+export async function npm(db: string) {
+    // http://127.0.0.1:5984/npm
+    const dataBase = new PouchDB(db);
 
-     */
-    //console.log(findResponse);
+    let bookmark;
+    let elements = 0;
+    while (true) {
+        let findResponse: any = await dataBase.find({
+            selector: {
+                "_id": {"$gte": null},
+                "versions": {"$gte": {}}
+            },
+            bookmark: bookmark
+        });
+        bookmark = findResponse.bookmark;
+        console.log(bookmark);
+
+        for (let npmPackage of findResponse.docs) {
+            elements++;
+            if (elements % 100 === 0) {
+                console.log(elements);
+            }
+            const versions = npmPackage.versions;
+            const latestVersion = versions[Object.keys(versions)[Object.keys(versions).length - 1]];
+            const tarLink = latestVersion?.dist?.tarball;
+
+            tarLink ? await extractWasm(tarLink):"";
+        }
+    }
 }
 
-function extractWasm(tarLink: string): Promise <void> {
+function extractWasm(tarLink: string): Promise<void> {
     return new Promise<void>((resolve: Function, reject: Function) => {
         https.get(tarLink, (response: http.IncomingMessage) => {
             if (response.statusCode === 200) {
@@ -33,10 +55,11 @@ function extractWasm(tarLink: string): Promise <void> {
                 });
 
                 tarStream.on("entry", (header: { name: string }, entryStream: stream.Readable, next: Function) => {
-                    console.log(header.name);
                     if (header.name.slice((header.name.lastIndexOf(".") - 1 >>> 0) + 2) === 'wasm') {
+                        console.log('----------------found wasm----------------');
                         const promise: Promise<void> = saveWasm(entryStream, header.name);
-                        promise.catch(() => {});
+                        promise.catch(() => {
+                        });
                         promises.push(promise);
                     } else {
                         entryStream.resume();
@@ -45,9 +68,7 @@ function extractWasm(tarLink: string): Promise <void> {
                 });
 
                 tarStream.on("finish", () => {
-                    console.log('Finished checking tarball, saving wasm files');
                     Promise.all(promises).then(() => {
-                        console.log('Finished saving wasm files');
                         resolve();
                     }, (err) => {
                         console.log(err);
