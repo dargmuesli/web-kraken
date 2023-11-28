@@ -1,4 +1,11 @@
 
 
-# dependencies
-/node_modules
+WASM-Analyzer/node_modules
+WASM-Analyzer/dist
+WASM-Crawler/node_modules
+WASM-Crawler/dist
+
+# IDE
+.idea
+.idea/*
+\.idea
