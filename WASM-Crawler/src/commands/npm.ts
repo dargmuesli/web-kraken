@@ -6,16 +6,18 @@ PouchDB.plugin(PouchDBFind);
 import https from "https";
 import http from "http";
 import stream from "stream";
-import fs from "fs";
+import fs, {existsSync, mkdirSync, writeFileSync} from "fs";
 import gunzip from "gunzip-maybe";
 import * as tar from "tar-stream";
+import {OptionValues} from "commander";
+import {getFileName} from "./gitcrawler";
+import path from "path";
 
 
-export async function npm(db: string) {
-    // http://127.0.0.1:5984/npm
+export async function npm(db: string, options: OptionValues) {
     const dataBase = new PouchDB(db);
 
-    let bookmark;
+    let bookmark = options.bookmark;
     let elements = 0;
     while (true) {
         let findResponse: any = await dataBase.find({
@@ -25,9 +27,6 @@ export async function npm(db: string) {
             },
             bookmark: bookmark
         });
-        bookmark = findResponse.bookmark;
-        console.log(bookmark);
-
         for (let npmPackage of findResponse.docs) {
             elements++;
             if (elements % 100 === 0) {
@@ -37,16 +36,24 @@ export async function npm(db: string) {
             const latestVersion = versions[Object.keys(versions)[Object.keys(versions).length - 1]];
             const tarLink = latestVersion?.dist?.tarball;
 
-            tarLink ? await extractWasm(tarLink):"";
+            if (!tarLink) {
+                continue;
+            }
+
+            const fileNames = await extractWasm(tarLink, npmPackage._id);
+            fileNames.forEach((fileName: string) => saveSource(tarLink, npmPackage._id, fileName));
         }
+        bookmark = findResponse.bookmark;
+        console.log(bookmark);
     }
 }
 
-function extractWasm(tarLink: string): Promise<void> {
-    return new Promise<void>((resolve: Function, reject: Function) => {
+function extractWasm(tarLink: string, id: string): Promise<string[]> {
+    return new Promise<string[]>((resolve: Function, reject: Function) => {
         https.get(tarLink, (response: http.IncomingMessage) => {
             if (response.statusCode === 200) {
                 const promises: Promise<void>[] = [];
+                const fileNames: string[] = [];
 
                 const tarStream = tar.extract();
 
@@ -57,7 +64,7 @@ function extractWasm(tarLink: string): Promise<void> {
                 tarStream.on("entry", (header: { name: string }, entryStream: stream.Readable, next: Function) => {
                     if (header.name.slice((header.name.lastIndexOf(".") - 1 >>> 0) + 2) === 'wasm') {
                         console.log('----------------found wasm----------------');
-                        const promise: Promise<void> = saveWasm(entryStream, header.name);
+                        const promise: Promise<void> = saveWasm(entryStream);
                         promise.catch(() => {
                         });
                         promises.push(promise);
@@ -69,7 +76,7 @@ function extractWasm(tarLink: string): Promise<void> {
 
                 tarStream.on("finish", () => {
                     Promise.all(promises).then(() => {
-                        resolve();
+                        resolve(fileNames);
                     }, (err) => {
                         console.log(err);
                     });
@@ -82,10 +89,10 @@ function extractWasm(tarLink: string): Promise<void> {
                 response.pipe(gunzipStream).pipe(tarStream);
 
 
-                function saveWasm(entryStream: stream.Readable, name: string): Promise<void> {
+                function saveWasm(entryStream: stream.Readable): Promise<void> {
                     return new Promise<void>((resolve_entry: Function) => {
-                        const split: string[] = name.split("/");
-                        const filename: string = split[split.length - 1];
+                        const filename: string = getFileName(path.basename(id) + '.wasm');
+                        fileNames.push(filename);
 
                         const writeStream: fs.WriteStream = fs.createWriteStream(filename);
                         writeStream.on("error", (err: Error) => {
@@ -104,4 +111,14 @@ function extractWasm(tarLink: string): Promise<void> {
             }
         });
     });
+}
+
+function saveSource(tarBall: string, name: string, file: string) {
+    if (!existsSync('./sources')) mkdirSync('./sources');
+    const sources = {
+        package: name,
+        tarball: tarBall,
+        type: 'npm'
+    };
+    writeFileSync(path.join('sources', file.replace('.wasm', '_sources.json')), JSON.stringify(sources, null, 2))
 }

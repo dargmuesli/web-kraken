@@ -9,6 +9,7 @@ const program = new Command();
 program
     .command('npm <db>')
     .description('Crawl npm packages for wasm files')
+    .option('-b --bookmark <bookmark>', 'Bookmark to start crawling from')
     .action(npm);
 
 program

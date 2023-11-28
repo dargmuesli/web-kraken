@@ -74,7 +74,7 @@ function extractWasmFromJs(data: any, name: string, item: any): number {
     return filesSaved;
 }
 
-function getFileName(name: string): string {
+export function getFileName(name: string): string {
     if (!fs.existsSync(name)) return name;
     let regex = /[(]\d+[)].wasm/g;
     let match = name.match(regex);
