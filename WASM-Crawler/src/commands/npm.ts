@@ -23,9 +23,31 @@ export async function npm(db: string, options: OptionValues) {
     let elements = 0;
     const total = (await dataBase.info()).doc_count;
 
+
     console.log('Start crawling npm packages...');
     const progressBar = new SingleBar({}, Presets.shades_classic);
     progressBar.start(total, 0);
+
+
+    // Interrupt handling
+    if (process.platform === "win32") {
+        let rl = require("readline").createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+
+        rl.on("SIGINT", function () {
+            process.emit("SIGINT");
+        });
+    }
+
+    process.on('SIGINT', () => {
+        progressBar.stop();
+        console.log('Crawling aborted.');
+        if (bookmark) console.log('Last bookmark: ' + bookmark);
+        process.exit();
+    });
+
     while (true) {
         let findResponse: any = await dataBase.find({
             selector: {
@@ -36,6 +58,7 @@ export async function npm(db: string, options: OptionValues) {
         });
         for (let npmPackage of findResponse.docs) {
             elements++;
+            if (!npmPackage.versions || npmPackage.versions.length === 0) continue;
             const versions = npmPackage.versions;
             const latestVersion = versions[Object.keys(versions)[Object.keys(versions).length - 1]];
             const tarLink = latestVersion?.dist?.tarball;
@@ -50,11 +73,15 @@ export async function npm(db: string, options: OptionValues) {
             progressBar.update(elements);
         }
         bookmark = findResponse.bookmark;
+        if (findResponse.docs.length === 0) break;
     }
+    progressBar.update(total);
+    progressBar.stop();
+    console.log('Finished crawling npm packages.');
 }
 
 function extractWasm(tarLink: string, id: string): Promise<string[]> {
-    return new Promise<string[]>((resolve: Function, reject: Function) => {
+    return new Promise<string[]>((resolve: Function) => {
         https.get(tarLink, (response: http.IncomingMessage) => {
             if (response.statusCode === 200) {
                 const promises: Promise<void>[] = [];
