@@ -1,6 +1,7 @@
 import PouchDB from 'pouchdb/lib/index.js';
 import * as PouchDBFind from "pouchdb-find/lib/index.js";
 
+
 PouchDB.plugin(PouchDBFind);
 
 import https from "https";
@@ -12,6 +13,7 @@ import * as tar from "tar-stream";
 import {OptionValues} from "commander";
 import {getFileName} from "./gitcrawler";
 import path from "path";
+import {Presets, SingleBar} from "cli-progress";
 
 
 export async function npm(db: string, options: OptionValues) {
@@ -19,6 +21,11 @@ export async function npm(db: string, options: OptionValues) {
 
     let bookmark = options.bookmark;
     let elements = 0;
+    const total = (await dataBase.info()).doc_count;
+
+    console.log('Start crawling npm packages...');
+    const progressBar = new SingleBar({}, Presets.shades_classic);
+    progressBar.start(total, 0);
     while (true) {
         let findResponse: any = await dataBase.find({
             selector: {
@@ -29,22 +36,20 @@ export async function npm(db: string, options: OptionValues) {
         });
         for (let npmPackage of findResponse.docs) {
             elements++;
-            if (elements % 100 === 0) {
-                console.log(elements);
-            }
             const versions = npmPackage.versions;
             const latestVersion = versions[Object.keys(versions)[Object.keys(versions).length - 1]];
             const tarLink = latestVersion?.dist?.tarball;
 
             if (!tarLink) {
+                progressBar.update(elements);
                 continue;
             }
 
             const fileNames = await extractWasm(tarLink, npmPackage._id);
             fileNames.forEach((fileName: string) => saveSource(tarLink, npmPackage._id, fileName));
+            progressBar.update(elements);
         }
         bookmark = findResponse.bookmark;
-        console.log(bookmark);
     }
 }
 
@@ -63,8 +68,7 @@ function extractWasm(tarLink: string, id: string): Promise<string[]> {
 
                 tarStream.on("entry", (header: { name: string }, entryStream: stream.Readable, next: Function) => {
                     if (header.name.slice((header.name.lastIndexOf(".") - 1 >>> 0) + 2) === 'wasm') {
-                        console.log('----------------found wasm----------------');
-                        const promise: Promise<void> = saveWasm(entryStream);
+                        const promise: Promise<void> = saveWasm(entryStream, header.name);
                         promise.catch(() => {
                         });
                         promises.push(promise);
@@ -89,9 +93,9 @@ function extractWasm(tarLink: string, id: string): Promise<string[]> {
                 response.pipe(gunzipStream).pipe(tarStream);
 
 
-                function saveWasm(entryStream: stream.Readable): Promise<void> {
+                function saveWasm(entryStream: stream.Readable, name: string): Promise<void> {
                     return new Promise<void>((resolve_entry: Function) => {
-                        const filename: string = getFileName(path.basename(id) + '.wasm');
+                        const filename: string = getFileName(path.basename(id) + '_' + path.basename(name));
                         fileNames.push(filename);
 
                         const writeStream: fs.WriteStream = fs.createWriteStream(filename);
@@ -107,7 +111,7 @@ function extractWasm(tarLink: string, id: string): Promise<string[]> {
                     });
                 }
             } else {
-                console.log('response: ' + response.statusCode);
+                resolve([]);
             }
         });
     });
@@ -120,5 +124,7 @@ function saveSource(tarBall: string, name: string, file: string) {
         tarball: tarBall,
         type: 'npm'
     };
-    writeFileSync(path.join('sources', file.replace('.wasm', '_sources.json')), JSON.stringify(sources, null, 2))
+    const wasmEndIndex = file.lastIndexOf('.wasm');
+    file = file.substring(0, wasmEndIndex) + '_sources.json';
+    writeFileSync(path.join('sources', file), JSON.stringify(sources, null, 2))
 }
