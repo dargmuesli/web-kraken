@@ -9,3 +9,4 @@ WASM-Crawler/dist
 .idea
 .idea/*
 \.idea
+/dbdata/

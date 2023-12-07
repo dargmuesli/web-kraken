@@ -15,6 +15,8 @@ import {getFileName} from "./gitcrawler";
 import path from "path";
 import {Presets, SingleBar} from "cli-progress";
 
+let base = '/app/crawler_data/';
+
 
 export async function npm(db: string, options: OptionValues) {
     const dataBase = new PouchDB(db);
@@ -125,7 +127,7 @@ function extractWasm(tarLink: string, id: string): Promise<string[]> {
                         const filename: string = getFileName(path.basename(id) + '_' + path.basename(name));
                         fileNames.push(filename);
 
-                        const writeStream: fs.WriteStream = fs.createWriteStream(filename);
+                        const writeStream: fs.WriteStream = fs.createWriteStream(base + filename);
                         writeStream.on("error", (err: Error) => {
                             entryStream.resume();
                             writeStream.close();
@@ -145,7 +147,7 @@ function extractWasm(tarLink: string, id: string): Promise<string[]> {
 }
 
 function saveSource(tarBall: string, name: string, file: string) {
-    if (!existsSync('./sources')) mkdirSync('./sources');
+    if (!existsSync(base + '/sources')) mkdirSync(base + '/sources');
     const sources = {
         package: name,
         tarball: tarBall,
@@ -153,5 +155,5 @@ function saveSource(tarBall: string, name: string, file: string) {
     };
     const wasmEndIndex = file.lastIndexOf('.wasm');
     file = file.substring(0, wasmEndIndex) + '_sources.json';
-    writeFileSync(path.join('sources', file), JSON.stringify(sources, null, 2))
+    writeFileSync(base + path.join('sources', file), JSON.stringify(sources, null, 2))
 }

@@ -20,3 +20,7 @@ replication document.
 8. To stop the crawler press `Ctrl+C`. The resulting bookmark can be used to continue the crawling process at a later time
 with the command `wasm-crawler npm [url of the database] [bookmark]`.
 
+### Docker
+1. `docker compose up -d`
+2. `CRAWLER_DATA_PATH=/your/custom/path docker-compose run wasm-crawler`
+
