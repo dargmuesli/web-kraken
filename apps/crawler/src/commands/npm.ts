@@ -15,8 +15,6 @@ import {getFileName} from "./gitcrawler";
 import path from "path";
 import {Presets, SingleBar} from "cli-progress";
 
-let base = '/app/crawler_data/';
-
 
 export async function npm(db: string, options: OptionValues) {
     const dataBase = new PouchDB(db);
@@ -70,8 +68,8 @@ export async function npm(db: string, options: OptionValues) {
                 continue;
             }
 
-            const fileNames = await extractWasm(tarLink, npmPackage._id);
-            fileNames.forEach((fileName: string) => saveSource(tarLink, npmPackage._id, fileName));
+            const fileNames = await extractWasm(tarLink, npmPackage._id, options.path);
+            fileNames.forEach((fileName: string) => saveSource(tarLink, npmPackage._id, fileName, options.path));
             progressBar.update(elements);
         }
         bookmark = findResponse.bookmark;
@@ -82,7 +80,7 @@ export async function npm(db: string, options: OptionValues) {
     console.log('Finished crawling npm packages.');
 }
 
-function extractWasm(tarLink: string, id: string): Promise<string[]> {
+function extractWasm(tarLink: string, id: string, pathString: string): Promise<string[]> {
     return new Promise<string[]>((resolve: Function) => {
         https.get(tarLink, (response: http.IncomingMessage) => {
             if (response.statusCode === 200) {
@@ -97,7 +95,7 @@ function extractWasm(tarLink: string, id: string): Promise<string[]> {
 
                 tarStream.on("entry", (header: { name: string }, entryStream: stream.Readable, next: Function) => {
                     if (header.name.slice((header.name.lastIndexOf(".") - 1 >>> 0) + 2) === 'wasm') {
-                        const promise: Promise<void> = saveWasm(entryStream, header.name);
+                        const promise: Promise<void> = saveWasm(entryStream, header.name, pathString);
                         promise.catch(() => {
                         });
                         promises.push(promise);
@@ -122,12 +120,12 @@ function extractWasm(tarLink: string, id: string): Promise<string[]> {
                 response.pipe(gunzipStream).pipe(tarStream);
 
 
-                function saveWasm(entryStream: stream.Readable, name: string): Promise<void> {
+                function saveWasm(entryStream: stream.Readable, name: string, pathString: string): Promise<void> {
                     return new Promise<void>((resolve_entry: Function) => {
                         const filename: string = getFileName(path.basename(id) + '_' + path.basename(name));
                         fileNames.push(filename);
 
-                        const writeStream: fs.WriteStream = fs.createWriteStream(base + filename);
+                        const writeStream: fs.WriteStream = fs.createWriteStream(path.join(pathString, filename));
                         writeStream.on("error", (err: Error) => {
                             entryStream.resume();
                             writeStream.close();
@@ -146,8 +144,8 @@ function extractWasm(tarLink: string, id: string): Promise<string[]> {
     });
 }
 
-function saveSource(tarBall: string, name: string, file: string) {
-    if (!existsSync(base + '/sources')) mkdirSync(base + '/sources');
+function saveSource(tarBall: string, name: string, file: string, pathString: string) {
+    if (!existsSync(path.join(pathString, 'sources'))) mkdirSync(path.join(pathString, 'sources'));
     const sources = {
         package: name,
         tarball: tarBall,
@@ -155,5 +153,5 @@ function saveSource(tarBall: string, name: string, file: string) {
     };
     const wasmEndIndex = file.lastIndexOf('.wasm');
     file = file.substring(0, wasmEndIndex) + '_sources.json';
-    writeFileSync(base + path.join('sources', file), JSON.stringify(sources, null, 2))
+    writeFileSync(path.join(pathString, 'sources', file), JSON.stringify(sources, null, 2))
 }
