@@ -17,6 +17,7 @@ import {Presets, SingleBar} from "cli-progress";
 
 
 export async function npm(db: string, options: OptionValues) {
+    console.log('Start crawling npm packages...');
     const dataBase = new PouchDB(db);
 
     let bookmark = options.bookmark;
@@ -24,7 +25,7 @@ export async function npm(db: string, options: OptionValues) {
     const total = (await dataBase.info()).doc_count;
 
 
-    console.log('Start crawling npm packages...');
+
     const progressBar = new SingleBar({}, Presets.shades_classic);
     progressBar.start(total, 0);
 
