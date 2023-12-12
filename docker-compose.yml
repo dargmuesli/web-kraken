@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  couchdb:
+    image: couchdb
+    restart: always
+    ports:
+      - "5984:5984"
+    environment:
+      COUCHDB_USER: admin
+      COUCHDB_PASSWORD: admin
+    #volumes:
+      #- /DATA-nvme/adrian/couchdb/data:/opt/couchdb/data
+
+  wasm-crawler:
+    build: .
+    depends_on:
+      - couchdb
+    environment:
+      DATABASE_URL: http://couchdb:5984/npm
+    volumes:
+      - ./wasms:/app/crawler_data
