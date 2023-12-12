@@ -4,7 +4,7 @@
 1. Clone this repository.
 2. Install Docker and Docker-Compose https://docs.docker.com/get-docker/.
 3. Run `nx run crawler:build:production` to build the crawler.
-4. Run `docker-compose up --no build` to start the couchdb.
+4. Run `docker-compose up --no-build` to start the couchdb.
 5. Open CouchDB dashboard http://127.0.0.1:5984/_utils.
 6. Create a new database.
 7. Set the permissions of the database to public (remove the admin and member roles).
