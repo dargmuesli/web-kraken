@@ -3,8 +3,6 @@ import path from 'path';
 
 function childSpawn(command: string, options: string[]) {
   const wabtBinaryPath = path.join(__dirname, '../../../../../../../node_modules/wabt/bin/', command);
-  console.log(wabtBinaryPath);
-  console.log(options);
   return spawn('node', [wabtBinaryPath].concat(options));
 }
 
