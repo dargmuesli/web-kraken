@@ -1,9 +1,11 @@
 import {spawn} from "child_process";
+import path from 'path';
 
 function childSpawn(command: string, options: string[]) {
-    let root = __dirname.substring(0, __dirname.lastIndexOf('\\'));
-    root = root.substring(0, root.lastIndexOf('\\'));
-    return spawn('node', [root + '\\node_modules\\wabt\\bin\\' + command].concat(options));
+  const wabtBinaryPath = path.join(__dirname, '../../../../../../../node_modules/wabt/bin/', command);
+  console.log(wabtBinaryPath);
+  console.log(options);
+  return spawn('node', [wabtBinaryPath].concat(options));
 }
 
 export function getCommandResult(command: string, options: string[]): Promise<string> {

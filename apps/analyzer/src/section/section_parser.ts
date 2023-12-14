@@ -2,7 +2,7 @@ import {getCommandResult} from "../util/util";
 import {ProducersSection, Section} from "../entity/section";
 
 export async function getCustomSectionList(path: string) {
-    const result = await getCommandResult('wasm-objdump', ['-h', path]);
+    const result = await getCommandResult('wasm-objdump', ['-h', './' + path]);
     const sections: Section[] = [];
     for (let string of result
         .split(/\n/)
@@ -16,7 +16,7 @@ export async function getCustomSectionList(path: string) {
 
 
 async function getSectionData(path: string, name: string) {
-    const result = await getCommandResult('wasm-objdump', ['-j', name, path, '-s']);
+    const result = await getCommandResult('wasm-objdump', ['-j', name, './' + path, '-s']);
     const dataLines = result
         .split(/\n/)
         .map((line) => {

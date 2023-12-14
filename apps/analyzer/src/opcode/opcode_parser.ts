@@ -3,7 +3,7 @@ import {Opcode} from "../entity/opcode";
 import {getFeature, getFeatureMap} from "./feature_parser";
 
 export async function getOpcodeList(path: string): Promise<Opcode[]> {
-    const result = await getCommandResult('wasm-opcodecnt', [path, '--enable-all']);
+    const result = await getCommandResult('wasm-opcodecnt', ['./' + path, '--enable-all']);
     if (result === '') {
         return [];
     }
