@@ -8,6 +8,10 @@ import {OptionValues} from "commander";
 
 export async function batch(options: OptionValues) {
     console.log('Batch analyzing wasm files in the directory...');
+    if (Object.keys(options).length === 0) {
+        options = {"import": true, "function": true, "opcode": true, "section": true};
+    }
+
     const files = readdirSync(process.cwd());
     const wasmFiles = files.filter((file) => path.extname(file).toLowerCase() === '.wasm');
     if (!existsSync('./import') && options.import) mkdirSync('./import');
