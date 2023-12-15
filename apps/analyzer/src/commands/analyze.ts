@@ -1,9 +1,8 @@
-import {existsSync, readdirSync, readFileSync, writeFileSync} from "fs";
-import path from "path";
-import {OptionValues} from "commander";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import path from 'path';
 
 
-export function analyze(file: string, options: OptionValues) {
+export function analyze(file: string) {
 
     const wasmFiles = file ?
         [file.replace('.wasm', '')] : readdirSync(process.cwd())
@@ -27,9 +26,9 @@ export function analyze(file: string, options: OptionValues) {
                 return {
                     name: func.name,
                     returns: func.returns,
-                    params: func.params,
-                }
-            }): [];
+                    params: func.params
+                };
+            }) : [];
         const internalFunctions = functions ? functions
             .filter((func: any) => !func.exported)
             .map((func: any) => {
@@ -37,8 +36,8 @@ export function analyze(file: string, options: OptionValues) {
                     name: func.name,
                     returns: func.returns,
                     params: func.params
-                }
-            }): [];
+                };
+            }) : [];
 
         const sectionPath = path.join('sections', file + '_section.json');
         const sections = existsSync(sectionPath) ? JSON.parse(readFileSync(sectionPath).toString()) : [];
@@ -55,22 +54,39 @@ export function analyze(file: string, options: OptionValues) {
             internalFunctions: internalFunctions,
             sections: sections,
             source: source
-        }
+        };
     });
     console.log('Number of files: ' + fileDetails.length);
+    console.log();
+
+
+    console.log('------Functions------');
     console.log('Average number of exported functions: ' + getAverageNumberOfExportedFunctions(fileDetails));
     console.log('Average number of imported functions: ' + getAverageNumberOfImportedFunctions(fileDetails));
-    console.log('With detected features: ' + getNumberOfWasmsWithFeatures(fileDetails) + '/' + fileDetails.length);
+    console.log();
 
-    // JSON.stringify(getLanguageMap(fileDetails), null, 2)
+
+    console.log('------Opcodes------');
+    console.log('Files with opcodes: ' + getNumberOfFilesWithOpcodes(fileDetails) + '/' + fileDetails.length);
+    console.log();
+
+
+    console.log('------Features------');
+    const featureMap = new Map([...getFeatureMap(fileDetails).entries()].sort((a, b) => b[1] - a[1]));
+    console.log('Features used: ');
+    for (const [feature, count] of featureMap) {
+        if (feature !== 'default') console.log(feature + ': ' + count);
+    }
+    console.log();
+
+
+    console.log('------Languages------');
     const languageMap = new Map([...getLanguageMap(fileDetails).entries()].sort((a, b) => b[1] - a[1]));
-    const numberOfLanguagesKnown = Array.from(languageMap.values()).reduce((a, b) => a + b, 0);
-    console.log('Language known: ' + numberOfLanguagesKnown + '/' + fileDetails.length);
+    console.log('Language known: ' + getNumberOfLanguagesKnown(fileDetails) + '/' + fileDetails.length);
     console.log('Language map: ');
     for (const [language, count] of languageMap) {
         console.log(language + ': ' + count);
     }
-
 
     writeFileSync('details.json', JSON.stringify(fileDetails, null, 2));
 }
@@ -87,11 +103,26 @@ function getAverageNumberOfImportedFunctions(fileDetails: any): number {
     return Math.round(reduce * 100) / 100;
 }
 
-function getNumberOfWasmsWithFeatures(fileDetails: any): number{
-    return fileDetails.filter((file: any) => {
-        const number = file.features.indexOf('default') === -1 ? 0 : 1;
-        return file.features.length > number;
-    }).length;
+function getFeatureMap(fileDetails: any): Map<string, number> {
+    const featureMap = new Map<string, number>();
+    for (const file of fileDetails) {
+        for (const feature of file.features) {
+            if (!featureMap.has(feature)) {
+                featureMap.set(feature, 1);
+            } else {
+                featureMap.set(feature, featureMap.get(feature) + 1);
+            }
+        }
+    }
+    return featureMap;
+}
+
+function getNumberOfFilesWithOpcodes(fileDetails: any): number {
+    return fileDetails.filter((file: any) => file.opcodes.length > 0).length;
+}
+
+function getNumberOfLanguagesKnown(fileDetails: any): number {
+    return fileDetails.filter((file: any) => file.sections.filter((section: any) => section.name === 'producers' && section.language).length > 0).length;
 }
 
 function getLanguageMap(fileDetails: any): Map<string, number> {
