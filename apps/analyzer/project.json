@@ -15,7 +15,13 @@
         "bundle": false,
         "main": "apps/analyzer/src/main.ts",
         "tsConfig": "apps/analyzer/tsconfig.app.json",
-        "assets": ["apps/analyzer/src/resources"],
+        "assets": [
+            {
+                "glob": "**/*",
+                "input": "apps/analyzer/src/resources/",
+                "output": "./apps/analyzer/src/resources/"
+            }
+        ],
         "generatePackageJson": true,
         "esbuildOptions": {
           "sourcemap": true,

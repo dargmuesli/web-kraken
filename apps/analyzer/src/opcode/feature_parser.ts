@@ -1,16 +1,9 @@
-import {readdirSync, readFileSync} from "fs";
+import feature_opcodes from '../resources/features/feature_opcodes.json';
 
 export function getFeatureMap(): Map<string, string[]> {
-    let root = __dirname.substring(0, __dirname.lastIndexOf('\\'));
-    root = root.substring(0, root.lastIndexOf('\\'));
-    const folder = root + '\\src\\resources\\features\\';
-
-    const files = readdirSync(folder);
     const featureMap = new Map<string, string[]>();
-    for (const file of files) {
-        const name = file.substring(0, file.lastIndexOf('.'));
-        const opcodes = readFileSync(folder + file).toString().split(/\n/).map((line) => line.trim());
-        featureMap.set(name, opcodes);
+    for (const feature of Object.keys(feature_opcodes)) {
+        featureMap.set(feature, feature_opcodes[feature]);
     }
     return featureMap;
 }
