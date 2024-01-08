@@ -1,4 +1,4 @@
-import {existsSync, mkdirSync, readdirSync} from "fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync } from 'fs';
 import path from "path";
 import {funcls} from "./funcls";
 import {opcodels} from "./opcodels";
@@ -13,8 +13,10 @@ export async function batch(options: OptionValues) {
         options = {"import": true, "function": true, "opcode": true, "section": true};
     }
 
+    const input: string[] = options.jsonInput ? JSON.parse(readFileSync(options.jsonInput).toString()) : null;
+
     const files = readdirSync(process.cwd());
-    const wasmFiles = files.filter((file) => path.extname(file).toLowerCase() === '.wasm');
+    const wasmFiles = files.filter((file) => path.extname(file).toLowerCase() === '.wasm' && (!input || input.includes(file)));
     if (!existsSync('./import') && options.import) mkdirSync('./import');
     if (!existsSync('./function') && options.function) mkdirSync('./function');
     if (!existsSync('./opcode') && options.opcode) mkdirSync('./opcode');

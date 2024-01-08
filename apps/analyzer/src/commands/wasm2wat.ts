@@ -2,7 +2,7 @@ import { getCommandResult } from '../util/util';
 import { OptionValues } from 'commander';
 
 export async function wasm2wat(file: string, options: OptionValues) {
-    let option = [file];
+    let option = ['./' +file];
     if (options.output) {
         option = option.concat(['-o', options.output]);
     }

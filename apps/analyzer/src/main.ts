@@ -44,6 +44,7 @@ program
     .option('-o, --opcode', 'Show opcodes')
     .option('-s, --section', 'Show sections')
     .option('-c, --convert', 'Convert wasm to wat')
+    .option('-j, --jsonInput <input>', 'Specify the wasm files to analyze in json format')
     .description('Batch analyze wasm files in the directory')
     .action(batch);
 
