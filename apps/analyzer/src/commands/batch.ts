@@ -5,6 +5,7 @@ import {opcodels} from "./opcodels";
 import {getTypeTable} from "../type/type_parser";
 import {sectionls} from "./sectionls";
 import {OptionValues} from "commander";
+import { wasm2wat } from './wasm2wat';
 
 export async function batch(options: OptionValues) {
     console.log('Batch analyzing wasm files in the directory...');
@@ -18,6 +19,7 @@ export async function batch(options: OptionValues) {
     if (!existsSync('./function') && options.function) mkdirSync('./function');
     if (!existsSync('./opcode') && options.opcode) mkdirSync('./opcode');
     if (!existsSync('./sections') && options.section) mkdirSync('./sections');
+    if (!existsSync('./wat') && options.convert) mkdirSync('./wat');
 
     for (const file of wasmFiles) {
         const fileName = path.parse(file).name;
@@ -66,6 +68,16 @@ export async function batch(options: OptionValues) {
             try {
                 await sectionls(file, {
                     output: path.join('sections', fileName + '_section.json')
+                });
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
+        if (options.convert) {
+            try {
+                await wasm2wat(file, {
+                    output: path.join('wat', fileName + '.wat')
                 });
             } catch (e) {
                 console.log(e)

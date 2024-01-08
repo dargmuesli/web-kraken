@@ -43,6 +43,7 @@ program
     .option('-f, --function', 'Show functions')
     .option('-o, --opcode', 'Show opcodes')
     .option('-s, --section', 'Show sections')
+    .option('-c, --convert', 'Convert wasm to wat')
     .description('Batch analyze wasm files in the directory')
     .action(batch);
 
