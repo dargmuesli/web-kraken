@@ -88,6 +88,12 @@ export function analyze(file: string) {
         console.log(language + ': ' + count);
     }
 
+    const languageNotKnown = fileDetails
+        .filter((file: any) => file.sections.filter((section: any) => section.name === 'producers' && section.language) == 0)
+        .map((file: any) => file.name + '.wasm');
+
+
+    writeFileSync('languageNotKnown.json', JSON.stringify(languageNotKnown, null, 2));
     writeFileSync('details.json', JSON.stringify(fileDetails, null, 2));
 }
 
