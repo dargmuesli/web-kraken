@@ -8,6 +8,7 @@ import {batch} from "./commands/batch";
 import {sectionls} from "./commands/sectionls";
 import {ast} from "./commands/ast";
 import {analyze} from "./commands/analyze";
+import { wasm2wat } from './commands/wasm2wat';
 
 const program = new Command();
 
@@ -61,6 +62,12 @@ program
     .command('analyze [file]')
     .description('Analyze wasm files in the directory')
     .action(analyze);
+
+program
+    .command('wasm2wat <path>')
+    .option('-o, --output [file]', 'Output to file')
+    .description('Convert wasm file to wat file')
+    .action(wasm2wat);
 
 program.parse(process.argv);
 
