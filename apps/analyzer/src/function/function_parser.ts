@@ -1,5 +1,6 @@
 import {getCommandResult} from "../util/util";
 import {Function} from "../entity/function";
+import { Global } from '../entity/global';
 
 export async function getFunctionList(path: string): Promise<Function[]> {
     const exportList = await getExportList(path);
@@ -58,3 +59,25 @@ export async function getExportList(path: string): Promise<String[]> {
     }
     return exportList;
 }
+
+export async function getImportedGlobalList(path: string): Promise<Global[]> {
+    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Import', './' + path]);
+    const functionString = result.substring(result.indexOf('- global'));
+    const lines = functionString.split(/\n/);
+    const importedGlobalList: Global[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].indexOf('global') === -1) continue;
+        // - global[3] i32 mutable=1 <- GOT.func.PyAIter_Check
+        const parts = lines[i].split('<-');
+        const mutableIndex = parts[0].indexOf('mutable=');
+        const mutable: boolean | undefined = mutableIndex !== -1 ? (parts[0].charAt(mutableIndex + 'mutable='.length) === '1') : undefined;
+
+        const cutIndex = parts[1].lastIndexOf('.');
+        const source = parts[1].substring(0, cutIndex);
+        const name = parts[1].substring(cutIndex + 1);
+        importedGlobalList.push(new Global(name, source, mutable));
+    }
+    return importedGlobalList;
+}
+

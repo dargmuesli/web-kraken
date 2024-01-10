@@ -1,10 +1,10 @@
 import {getTypeTable} from "../type/type_parser";
-import {getFunctionList, getImportList} from "../function/function_parser";
+import { getFunctionList, getImportedGlobalList, getImportList } from '../function/function_parser';
 import {Function} from "../entity/function";
 import fs from "fs";
 
 export async function funcls(path: string, options: any, types?: string[]) {
-    const functionDetails = await getDetails(options, path, types);
+    let functionDetails: any = await getDetails(options, path, types);
     if (functionDetails.length === 0) {
         return;
     }
@@ -24,6 +24,21 @@ export async function funcls(path: string, options: any, types?: string[]) {
             return a.exported === b.exported ? 0 : a.exported ? -1 : 1;
         });
     }
+
+    if (options.import) {
+        const globalList = await getImportedGlobalList(path);
+        functionDetails = {
+            functions: functionDetails,
+            globals: globalList.map((global) => {
+                return {
+                    name: global.getName(),
+                    source: global.getSource(),
+                    mutable: global.getMutable(),
+                }
+            })
+        }
+    }
+
 
     if (options.output) {
         let output = options.output;
