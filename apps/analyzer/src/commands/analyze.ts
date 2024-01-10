@@ -45,6 +45,32 @@ export function analyze(file: string) {
         const sourcesPath = path.join('sources', file + '_sources.json');
         const source = existsSync(sourcesPath) ? JSON.parse(readFileSync(sourcesPath).toString()) : null;
 
+        const detectedLanguages = [];
+        const languageSection = sections.filter((section: any) => section.name === 'producers' && section.language);
+        if (languageSection.length > 0) {
+            const languageAndVersion = getLanguageAndVersion(languageSection[0].language);
+            detectedLanguages.push({
+                source: 'producers',
+                language: languageAndVersion.language,
+                version: languageAndVersion.version
+            });
+        }
+        const goBuildIdSection = sections.filter((section: any) => section.name.includes('go') && section.name.includes('buildid'));
+        const goVersionSection = sections.filter((section: any) => section.name.includes('go') && section.name.includes('version'));
+        if (goBuildIdSection.length > 0) {
+            detectedLanguages.push({
+                source: 'go.buildid',
+                language: 'Go',
+                version: goVersionSection.length > 0 ? goVersionSection[0].raw.replace('.go.version', '') : null
+            });
+        } else if (goVersionSection.length > 0) {
+            detectedLanguages.push({
+                source: 'go.version',
+                language: 'Go'
+            });
+        }
+
+
         return {
             name: file,
             features: opcodes ? opcodes.features : [],
@@ -53,7 +79,8 @@ export function analyze(file: string) {
             exports: exports,
             internalFunctions: internalFunctions,
             sections: sections,
-            source: source
+            source: source,
+            languages: detectedLanguages
         };
     });
     console.log('Number of files: ' + fileDetails.length);
@@ -72,28 +99,25 @@ export function analyze(file: string) {
 
 
     console.log('------Features------');
-    const featureMap = new Map([...getFeatureMap(fileDetails).entries()].sort((a, b) => b[1] - a[1]));
-    console.log('Features used: ');
-    for (const [feature, count] of featureMap) {
-        if (feature !== 'default') console.log(feature + ': ' + count);
-    }
+    const featureMap = getFeatureMap(fileDetails);
+    console.table(featureMap);
     console.log();
 
 
     console.log('------Languages------');
-    const languageMap = new Map([...getLanguageMap(fileDetails).entries()].sort((a, b) => b[1] - a[1]));
-    console.log('Language known: ' + getNumberOfLanguagesKnown(fileDetails) + '/' + fileDetails.length);
-    console.log('Language map: ');
-    for (const [language, count] of languageMap) {
-        console.log(language + ': ' + count);
-    }
+    const languageMap = getLanguageMap(fileDetails);
+    console.table(languageMap);
+    console.log();
 
-    const languageNotKnown = fileDetails
-        .filter((file: any) => file.sections.filter((section: any) => section.name === 'producers' && section.language) == 0)
-        .map((file: any) => file.name + '.wasm');
+    console.log('------Sections------');
+    const sectionMap = getSectionMap(fileDetails);
+    console.table(sectionMap);
+    console.log();
 
+    console.log('------Sources------');
+    const sourceMap = getSourceMap(fileDetails);
+    console.table(sourceMap);
 
-    writeFileSync('languageNotKnown.json', JSON.stringify(languageNotKnown, null, 2));
     writeFileSync('details.json', JSON.stringify(fileDetails, null, 2));
 }
 
@@ -120,27 +144,83 @@ function getFeatureMap(fileDetails: any): Map<string, number> {
             }
         }
     }
-    return featureMap;
+    return sortMap(featureMap);
 }
 
 function getNumberOfFilesWithOpcodes(fileDetails: any): number {
     return fileDetails.filter((file: any) => file.opcodes.length > 0).length;
 }
 
-function getNumberOfLanguagesKnown(fileDetails: any): number {
-    return fileDetails.filter((file: any) => file.sections.filter((section: any) => section.name === 'producers' && section.language).length > 0).length;
-}
-
 function getLanguageMap(fileDetails: any): Map<string, number> {
     const languageMap = new Map<string, number>();
     for (const file of fileDetails) {
-        const language = file.sections.filter((section: any) => section.name === 'producers' && section.language)[0]?.language;
-        if (!language) continue;
+        let language;
+        if (file.languages.length === 0) {
+            language = 'Unknown';
+        } else {
+            language = file.languages.map((lang: any) => lang.language).every((lang: string) => lang === file.languages[0].language) ?
+                file.languages[0].language : 'Uncertain';
+        }
+
         if (!languageMap.has(language)) {
             languageMap.set(language, 1);
         } else {
             languageMap.set(language, languageMap.get(language) + 1);
         }
     }
-    return languageMap;
+    return sortMap(languageMap);
+}
+
+function getSectionMap(fileDetails: any): Map<string, number> {
+    const sectionMap = new Map<string, number>();
+    for (const file of fileDetails) {
+        for (const section of file.sections) {
+            if (!sectionMap.has(section.name)) {
+                sectionMap.set(section.name, 1);
+            } else {
+                sectionMap.set(section.name, sectionMap.get(section.name) + 1);
+            }
+        }
+    }
+    return sortMap(sectionMap);
+}
+
+function getSourceMap(fileDetails: any): Map<string, number> {
+    const sourceMap = new Map<string, number>();
+    for (const file of fileDetails) {
+        for (let imp of file.imports) {
+            if (!sourceMap.has(imp.source)) {
+                sourceMap.set(imp.source, 1);
+            } else {
+                sourceMap.set(imp.source, sourceMap.get(imp.source) + 1);
+            }
+        }
+    }
+    return sortMap(sourceMap);
+}
+
+function sortMap(map: Map<string, number>): Map<string, number> {
+    return new Map([...map.entries()].sort((a, b) => b[1] - a[1]));
+}
+
+function getLanguageAndVersion(language: string): { language: string, version: string } {
+    const languages = ['Rust', 'Go'];
+    if (languages.filter((lang) => lang.toLowerCase() === language.toLowerCase()).length > 0) {
+        return {
+            'language': language,
+            'version': null
+        };
+    }
+    for (let lang of languages) {
+        if (language.toLowerCase().includes(lang.toLowerCase())) {
+            return {
+                'language': lang,
+                'version': language.replace(lang + '.', '')
+            };
+        }
+    }
+    return {
+        'language': language,
+        'version': null
+    };
 }
