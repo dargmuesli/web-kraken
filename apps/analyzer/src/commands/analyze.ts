@@ -46,6 +46,8 @@ export function analyze(file: string) {
         const source = existsSync(sourcesPath) ? JSON.parse(readFileSync(sourcesPath).toString()) : null;
 
         const detectedLanguages = [];
+
+        // detect language via producers section
         const languageSection = sections.filter((section: any) => section.name === 'producers' && section.language);
         if (languageSection.length > 0) {
             const languageAndVersion = getLanguageAndVersion(languageSection[0].language);
@@ -55,6 +57,8 @@ export function analyze(file: string) {
                 version: languageAndVersion.version
             });
         }
+
+        // detect go language via buildid or version section
         const goBuildIdSection = sections.filter((section: any) => section.name.includes('go') && section.name.includes('buildid'));
         const goVersionSection = sections.filter((section: any) => section.name.includes('go') && section.name.includes('version'));
         if (goBuildIdSection.length > 0) {
@@ -70,10 +74,25 @@ export function analyze(file: string) {
             });
         }
 
+        let features: string[] = [];
+
+        if (imports.globals) {
+            for (let global of imports.globals) {
+                if (global.mutable) {
+                    features.push('mutable-globals');
+                    break;
+                }
+            }
+        }
+
+        if (opcodes) {
+            features = features.concat(opcodes.features);
+        }
+
 
         return {
             name: file,
-            features: opcodes ? opcodes.features : [],
+            features: features,
             opcodes: opcodes ? opcodes.opcodes : [],
             imports: imports,
             exports: exports,
@@ -114,9 +133,6 @@ export function analyze(file: string) {
     console.table(sectionMap);
     console.log();
 
-    console.log('------Sources------');
-    const sourceMap = getSourceMap(fileDetails);
-    console.table(sourceMap);
 
     writeFileSync('details.json', JSON.stringify(fileDetails, null, 2));
 }
@@ -128,7 +144,7 @@ function getAverageNumberOfExportedFunctions(fileDetails: any): number {
 }
 
 function getAverageNumberOfImportedFunctions(fileDetails: any): number {
-    const total = fileDetails.map((file: any) => file.imports.length).reduce((a: number, b: number) => a + b, 0);
+    const total = fileDetails.map((file: any) => file.imports.functions ? file.imports.functions.length : 0).reduce((a: number, b: number) => a + b, 0);
     const reduce = total / fileDetails.length;
     return Math.round(reduce * 100) / 100;
 }
@@ -183,20 +199,6 @@ function getSectionMap(fileDetails: any): Map<string, number> {
         }
     }
     return sortMap(sectionMap);
-}
-
-function getSourceMap(fileDetails: any): Map<string, number> {
-    const sourceMap = new Map<string, number>();
-    for (const file of fileDetails) {
-        for (let imp of file.imports) {
-            if (!sourceMap.has(imp.source)) {
-                sourceMap.set(imp.source, 1);
-            } else {
-                sourceMap.set(imp.source, sourceMap.get(imp.source) + 1);
-            }
-        }
-    }
-    return sortMap(sourceMap);
 }
 
 function sortMap(map: Map<string, number>): Map<string, number> {

@@ -62,7 +62,9 @@ export async function getExportList(path: string): Promise<String[]> {
 
 export async function getImportedGlobalList(path: string): Promise<Global[]> {
     const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Import', './' + path]);
-    const functionString = result.substring(result.indexOf('- global'));
+    const globalIndex = result.indexOf('- global');
+    if (globalIndex === -1) return [];
+    const functionString = result.substring(globalIndex);
     const lines = functionString.split(/\n/);
     const importedGlobalList: Global[] = [];
 
