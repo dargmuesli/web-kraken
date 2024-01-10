@@ -86,7 +86,7 @@ export function analyze(file: string) {
         }
 
         if (opcodes) {
-            features = features.concat(opcodes.features);
+            features = features.concat(opcodes.features.filter((feature: string) => feature !== 'default'));
         }
 
 
