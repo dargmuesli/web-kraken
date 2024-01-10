@@ -76,6 +76,7 @@ export function analyze(file: string) {
 
         let features: string[] = [];
 
+        // mutable-globals feature
         if (imports.globals) {
             for (let global of imports.globals) {
                 if (global.mutable) {
@@ -85,8 +86,19 @@ export function analyze(file: string) {
             }
         }
 
+        // feature detection via opcodes
         if (opcodes) {
             features = features.concat(opcodes.features.filter((feature: string) => feature !== 'default'));
+        }
+
+        // multi-value feature
+        if (functions) {
+            for (let func of functions) {
+                if (func.returns && func.returns.includes(',')) {
+                    features.push('multi-value');
+                    break;
+                }
+            }
         }
 
 
