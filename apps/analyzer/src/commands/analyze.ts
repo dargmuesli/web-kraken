@@ -5,12 +5,20 @@ import path from 'path';
 export function analyze(file: string) {
 
     const wasmFiles = file ?
-        [file.replace('.wasm', '')] : readdirSync(process.cwd())
+        [file.replace(/\.[^/.]+$/, '')] : readdirSync(process.cwd())
             .filter((file) => path.extname(file).toLowerCase() === '.wasm')
-            .map((file) => file.replace('.wasm', ''));
+            .map((file) => file.replace(/\.[^/.]+$/, ''));
+
+    const packageMap = new Map<String, any>;
+    const packages = readdirSync('./packages').filter((file) => file.endsWith('_package.json'));
+    packages.forEach((packageFile) => {
+        const packageJson = JSON.parse(readFileSync(path.join('packages', packageFile)).toString());
+        delete packageJson.files;
+        packageMap.set(packageJson.package, packageJson);
+    });
 
 
-    const fileDetails = wasmFiles.map((file) => {
+    wasmFiles.forEach((file) => {
 
         const opcodePath = path.join('opcode', file + '_opcode.json');
         const opcodes = existsSync(opcodePath) ? JSON.parse(readFileSync(opcodePath).toString()) : null;
@@ -100,9 +108,10 @@ export function analyze(file: string) {
                 }
             }
         }
+        const packageName = source.package;
+        const packageData = packageMap.get(packageName);
 
-
-        return {
+        const fileDetails = {
             name: file,
             features: features,
             opcodes: opcodes ? opcodes.opcodes : [],
@@ -110,10 +119,18 @@ export function analyze(file: string) {
             exports: exports,
             internalFunctions: internalFunctions,
             sections: sections,
-            source: source,
             languages: detectedLanguages
         };
+
+        if (!packageData.files) {
+            packageData.files = [fileDetails];
+        } else {
+            packageData.files.push(fileDetails);
+        }
+        packageMap.set(packageName, packageData);
     });
+
+    /*
     console.log('Number of files: ' + fileDetails.length);
     console.log();
 
@@ -145,8 +162,12 @@ export function analyze(file: string) {
     console.table(sectionMap);
     console.log();
 
+     */
 
-    writeFileSync('details.json', JSON.stringify(fileDetails, null, 2));
+
+    writeFileSync('details.json', JSON.stringify({
+        packages: Array.from(packageMap.values())
+    }, null, 2));
 }
 
 function getAverageNumberOfExportedFunctions(fileDetails: any): number {
