@@ -10,6 +10,7 @@ import {ast} from "./commands/ast";
 import {analyze} from "./commands/analyze";
 import { wasm2wat } from './commands/wasm2wat';
 import { objdump } from './commands/objdump';
+import { npmdata } from './commands/npmdata';
 
 const program = new Command();
 
@@ -79,6 +80,9 @@ program
     .description('Objdump wrapper command')
     .action(objdump);
 
+program
+    .command('npmdata <source>')
+    .description('Get npm package data')
+    .action(npmdata);
+
 program.parse(process.argv);
-
-
