@@ -11,7 +11,12 @@ export async function npmdata(source: string, options: OptionValues, db?: PouchD
         try {
             let response = await dataBase.get(sourceJson.package);
             if (!response) return;
-            sourceJson['keywords'] = response['keywords'];
+            let keywords = response['keywords'];
+            if (keywords && keywords.length > 0) {
+                keywords = [...new Set(keywords.map((keyword: string) => keyword.toLowerCase()))];
+            }
+
+            sourceJson['keywords'] = keywords;
             if (response['readme'] !== 'ERROR: No README data found!') {
                 sourceJson['readme'] = response['readme'];
             }

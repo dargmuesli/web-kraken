@@ -1,7 +1,6 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 
-
 export function analyze(file: string) {
 
     const wasmFiles = file ?
@@ -166,6 +165,12 @@ export function analyze(file: string) {
     console.log();
 
 
+    console.log('------Packages------');
+    const keywordMap = getKeywordMap(packageArray);
+    console.table(keywordMap);
+    console.log();
+
+
     writeFileSync('details.json', JSON.stringify({
         packages: packageArray
     }, null, 2));
@@ -234,6 +239,19 @@ function getSectionMap(packageArray: any[]): Map<string, number> {
     return sortMap(sectionMap);
 }
 
+
+function getKeywordMap(packageArray: any[]): Map<string, number> {
+    const keywordMap = new Map<string, number>();
+    packageArray.forEach((pkg: any) => pkg.keywords?.forEach((keyword: any) =>{
+        if (!keywordMap.has(keyword)) {
+            keywordMap.set(keyword, 1);
+        } else {
+            keywordMap.set(keyword, keywordMap.get(keyword) + 1);
+        }
+    }));
+    return sortMap(keywordMap);
+}
+
 function sortMap(map: Map<string, number>): Map<string, number> {
     return new Map([...map.entries()].sort((a, b) => b[1] - a[1]));
 }
@@ -259,3 +277,4 @@ function getLanguageAndVersion(language: string): { language: string, version: s
         'version': null
     };
 }
+
