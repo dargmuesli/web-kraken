@@ -72,13 +72,14 @@ export async function getImportedGlobalList(path: string): Promise<Global[]> {
         if (lines[i].indexOf('global') === -1) continue;
         // - global[3] i32 mutable=1 <- GOT.func.PyAIter_Check
         const parts = lines[i].split('<-');
+        const type = parts[0].split('global')[1].split(' ')[1];
         const mutableIndex = parts[0].indexOf('mutable=');
         const mutable: boolean | undefined = mutableIndex !== -1 ? (parts[0].charAt(mutableIndex + 'mutable='.length) === '1') : undefined;
 
         const cutIndex = parts[1].lastIndexOf('.');
         const source = parts[1].substring(0, cutIndex);
         const name = parts[1].substring(cutIndex + 1);
-        importedGlobalList.push(new Global(name, source, mutable));
+        importedGlobalList.push(new Global(name, type, source, mutable));
     }
     return importedGlobalList;
 }

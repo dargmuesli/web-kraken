@@ -557,5 +557,32 @@
     "table.init",
     "elem.drop",
     "table.copy"
+  ],
+  "garbage-collection" : [
+    "struct.new_canon",
+    "struct.new_canon_default",
+    "struct.get",
+    "struct.get_s",
+    "struct.get_u",
+    "struct.set",
+    "array.new_canon",
+    "array.new_canon_default",
+    "array.get",
+    "array.get_s",
+    "array.get_u",
+    "array.set",
+    "array.len",
+    "array.new_canon_fixed",
+    "array.new_canon_data",
+    "array.new_canon_elem",
+    "i31.new",
+    "i31.get_s",
+    "i31.get_u",
+    "ref.test",
+    "ref.cast",
+    "br_on_cast",
+    "br_on_cast_fail",
+    "extern.internalize",
+    "extern.externalize"
   ]
 }

@@ -107,6 +107,14 @@ export function analyze(file: string) {
                 }
             }
         }
+
+        // JS BigInt to Wasm i64 integration
+        if (hasBigIntToI64Integration(exports, imports)) {
+            features.push('bigint-to-i64');
+        }
+
+
+
         const packageName = source.package;
         const packageData = packageMap.get(packageName);
 
@@ -276,5 +284,26 @@ function getLanguageAndVersion(language: string): { language: string, version: s
         'language': language,
         'version': null
     };
+}
+
+function hasBigIntToI64Integration(exports: any[], imports: any): boolean {
+    for (let exp of exports) {
+        if (exp.returns.includes('i64') || exp.params.includes('i64')) {
+            return true;
+        }
+    }
+    if (imports) {
+        for (let func of imports.functions) {
+            if (func.returns.includes('i64') || func.params.includes('i64')) {
+                return true;
+            }
+        }
+        for (let glob of imports.globals) {
+            if (glob.type.includes('i64')) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 

@@ -32,6 +32,7 @@ export async function funcls(path: string, options: any, types?: string[]) {
             globals: globalList.map((global) => {
                 return {
                     name: global.getName(),
+                    type: global.getType(),
                     source: global.getSource(),
                     mutable: global.getMutable(),
                 }
