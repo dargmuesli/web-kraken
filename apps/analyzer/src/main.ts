@@ -11,6 +11,7 @@ import {analyze} from "./commands/analyze";
 import { wasm2wat } from './commands/wasm2wat';
 import { objdump } from './commands/objdump';
 import { npmdata } from './commands/npmdata';
+import { groupsources } from './commands/groupsources';
 
 const program = new Command();
 
@@ -45,6 +46,7 @@ program
     .option('-f, --function', 'Show functions')
     .option('-o, --opcode', 'Show opcodes')
     .option('-s, --section', 'Show sections')
+    .option('-n, --npmdata', 'Get npm package data from sources')
     .option('-c, --convert', 'Convert wasm to wat')
     .option('-d, --dump', 'Objdump wasm file')
     .option('-j, --jsonInput <input>', 'Specify the wasm files to analyze in json format')
@@ -84,5 +86,10 @@ program
     .command('npmdata <source>')
     .description('Get npm package data')
     .action(npmdata);
+
+program
+    .command('groupsources')
+    .description('Group source files')
+    .action(groupsources)
 
 program.parse(process.argv);
