@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync } from 'fs';
 import path from "path";
+import PouchDB from 'pouchdb';
 import {funcls} from "./funcls";
 import {opcodels} from "./opcodels";
 import {getTypeTable} from "../type/type_parser";
@@ -7,6 +8,7 @@ import {sectionls} from "./sectionls";
 import {OptionValues} from "commander";
 import { wasm2wat } from './wasm2wat';
 import { objdump } from './objdump';
+import { npmdata } from './npmdata';
 
 export async function batch(options: OptionValues) {
     console.log('Batch analyzing wasm files in the directory...');
@@ -17,13 +19,17 @@ export async function batch(options: OptionValues) {
     const input: string[] = options.jsonInput ? JSON.parse(readFileSync(options.jsonInput).toString()) : null;
 
     const files = readdirSync(process.cwd());
-    const wasmFiles = files.filter((file) => path.extname(file).toLowerCase() === '.wasm' && (!input || input.includes(file)));
+    let wasmFiles = files.filter((file) => path.extname(file).toLowerCase() === '.wasm' && (!input || input.includes(file)));
     if (!existsSync('./import') && options.import) mkdirSync('./import');
     if (!existsSync('./function') && options.function) mkdirSync('./function');
     if (!existsSync('./opcode') && options.opcode) mkdirSync('./opcode');
     if (!existsSync('./sections') && options.section) mkdirSync('./sections');
     if (!existsSync('./wat') && options.convert) mkdirSync('./wat');
     if (!existsSync('./objdump') && options.dump) mkdirSync('./objdump');
+
+    if (!(options.import || options.function || options.opcode || options.section || options.convert || options.dump)) {
+        wasmFiles = [];
+    }
 
     for (const file of wasmFiles) {
         const fileName = path.parse(file).name;
@@ -98,5 +104,22 @@ export async function batch(options: OptionValues) {
             }
         }
     }
+
+    if (options.npmdata && existsSync('packages')) {
+        const files = readdirSync('packages');
+        const sources = files.filter((file) => file.endsWith('_package.json'));
+        const dataBase = new PouchDB('https://skimdb.npmjs.com/registry');
+        for (const source of sources) {
+            console.log('Getting npm data from ' + source + '...');
+            try {
+                await npmdata(path.join('packages', source), {
+                    db: true
+                }, dataBase);
+            } catch (e) {
+                console.log(e)
+            }
+        }
+    }
+
     console.log('Batch analyzing wasm files in the directory finished!');
 }
