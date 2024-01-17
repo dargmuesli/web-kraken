@@ -24,7 +24,7 @@ export function analyze(file: string) {
         const opcodes = existsSync(opcodePath) ? JSON.parse(readFileSync(opcodePath).toString()) : null;
 
         const importPath = path.join('import', file + '_import.json');
-        const imports = existsSync(importPath) ? JSON.parse(readFileSync(importPath).toString()) : [];
+        const imports = existsSync(importPath) ? JSON.parse(readFileSync(importPath).toString()) : null;
 
         const functionPath = path.join('function', file + '_function.json');
         const functions = existsSync(functionPath) ? JSON.parse(readFileSync(functionPath).toString()) : null;
@@ -85,7 +85,7 @@ export function analyze(file: string) {
         let features: string[] = [];
 
         // mutable-globals feature
-        if (imports.globals) {
+        if (imports && imports.globals) {
             for (let global of imports.globals) {
                 if (global.mutable) {
                     features.push('mutable-globals');
@@ -130,79 +130,81 @@ export function analyze(file: string) {
         packageMap.set(packageName, packageData);
     });
 
-    /*
-    console.log('Number of files: ' + fileDetails.length);
+    const packageArray = Array.from(packageMap.values());
+    const totalFiles = packageArray.map((pkg: any) => pkg.files.length).reduce((a: number, b: number) => a + b, 0);
+
+    console.log('Number of files: ' + totalFiles);
     console.log();
 
 
     console.log('------Functions------');
-    console.log('Average number of exported functions: ' + getAverageNumberOfExportedFunctions(fileDetails));
-    console.log('Average number of imported functions: ' + getAverageNumberOfImportedFunctions(fileDetails));
+    console.log('Average number of exported functions: ' + getAverageNumberOfExportedFunctions(packageArray, totalFiles));
+    console.log('Average number of imported functions: ' + getAverageNumberOfImportedFunctions(packageArray, totalFiles));
     console.log();
 
 
     console.log('------Opcodes------');
-    console.log('Files with opcodes: ' + getNumberOfFilesWithOpcodes(fileDetails) + '/' + fileDetails.length);
+    console.log('Files with opcodes: ' + getNumberOfFilesWithOpcodes(packageArray) + '/' + totalFiles);
     console.log();
 
 
     console.log('------Features------');
-    const featureMap = getFeatureMap(fileDetails);
+    const featureMap = getFeatureMap(packageArray);
     console.table(featureMap);
     console.log();
 
 
     console.log('------Languages------');
-    const languageMap = getLanguageMap(fileDetails);
+    const languageMap = getLanguageMap(packageArray);
     console.table(languageMap);
     console.log();
 
+
     console.log('------Sections------');
-    const sectionMap = getSectionMap(fileDetails);
+    const sectionMap = getSectionMap(packageArray);
     console.table(sectionMap);
     console.log();
 
-     */
-
 
     writeFileSync('details.json', JSON.stringify({
-        packages: Array.from(packageMap.values())
+        packages: packageArray
     }, null, 2));
 }
 
-function getAverageNumberOfExportedFunctions(fileDetails: any): number {
-    const total = fileDetails.map((file: any) => file.exports.length).reduce((a: number, b: number) => a + b, 0);
-    const reduce = total / fileDetails.length;
-    return Math.round(reduce * 100) / 100;
+function getAverageNumberOfExportedFunctions(packageArray: any[], totalFiles: number): number {
+    const total = packageArray.map((pkg: any) => pkg.files.map((file: any) => file.exports.length)
+        .reduce((a: number, b: number) => a + b, 0))
+        .reduce((a: number, b: number) => a + b, 0);
+    return Math.round(total / totalFiles * 100) / 100;
 }
 
-function getAverageNumberOfImportedFunctions(fileDetails: any): number {
-    const total = fileDetails.map((file: any) => file.imports.functions ? file.imports.functions.length : 0).reduce((a: number, b: number) => a + b, 0);
-    const reduce = total / fileDetails.length;
-    return Math.round(reduce * 100) / 100;
+function getAverageNumberOfImportedFunctions(packageArray: any[], totalFiles: number): number {
+    const total = packageArray.map((pkg: any) => pkg.files.map((file: any) => file.imports ? file.imports.functions.length : 0)
+        .reduce((a: number, b: number) => a + b, 0))
+        .reduce((a: number, b: number) => a + b, 0);
+    return Math.round(total / totalFiles * 100) / 100;
 }
 
-function getFeatureMap(fileDetails: any): Map<string, number> {
+function getFeatureMap(packageArray: any[]): Map<string, number> {
     const featureMap = new Map<string, number>();
-    for (const file of fileDetails) {
-        for (const feature of file.features) {
-            if (!featureMap.has(feature)) {
-                featureMap.set(feature, 1);
-            } else {
-                featureMap.set(feature, featureMap.get(feature) + 1);
-            }
+    packageArray.forEach((pkg: any) => pkg.files.forEach((file: any) => file.features.forEach((feature: string) => {
+        if (!featureMap.has(feature)) {
+            featureMap.set(feature, 1);
+        } else {
+            featureMap.set(feature, featureMap.get(feature) + 1);
         }
-    }
+    })));
     return sortMap(featureMap);
 }
 
-function getNumberOfFilesWithOpcodes(fileDetails: any): number {
-    return fileDetails.filter((file: any) => file.opcodes.length > 0).length;
+function getNumberOfFilesWithOpcodes(packageArray: any[]): number {
+    return packageArray.map((pkg: any) => pkg.files.filter((file: any) => file.opcodes.length > 0).length)
+        .reduce((a: number, b: number) => a + b, 0);
 }
 
-function getLanguageMap(fileDetails: any): Map<string, number> {
+function getLanguageMap(packageArray: any[]): Map<string, number> {
     const languageMap = new Map<string, number>();
-    for (const file of fileDetails) {
+    packageArray.forEach((pkg: any) => pkg.files.forEach((file: any) => {
         let language;
         if (file.languages.length === 0) {
             language = 'Unknown';
@@ -216,21 +218,19 @@ function getLanguageMap(fileDetails: any): Map<string, number> {
         } else {
             languageMap.set(language, languageMap.get(language) + 1);
         }
-    }
+    }));
     return sortMap(languageMap);
 }
 
-function getSectionMap(fileDetails: any): Map<string, number> {
+function getSectionMap(packageArray: any[]): Map<string, number> {
     const sectionMap = new Map<string, number>();
-    for (const file of fileDetails) {
-        for (const section of file.sections) {
-            if (!sectionMap.has(section.name)) {
-                sectionMap.set(section.name, 1);
-            } else {
-                sectionMap.set(section.name, sectionMap.get(section.name) + 1);
-            }
+    packageArray.forEach((pkg: any) => pkg.files.forEach((file: any) => file.sections.forEach((section: any) => {
+        if (!sectionMap.has(section.name)) {
+            sectionMap.set(section.name, 1);
+        } else {
+            sectionMap.set(section.name, sectionMap.get(section.name) + 1);
         }
-    }
+    })));
     return sortMap(sectionMap);
 }
 
