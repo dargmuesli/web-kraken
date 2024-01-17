@@ -7,11 +7,20 @@ export async function npmdata(source: string, options: OptionValues, db?: PouchD
     const sourceJson = JSON.parse(readFileSync(source).toString())
     if (!sourceJson.package) return;
 
-    let response = await dataBase.get(sourceJson.package);
-    if (!response) return;
-    sourceJson['keywords'] = response['keywords'];
-    sourceJson['readme'] = response['readme'];
-    sourceJson['description'] = response['description'];
+    while(true) {
+        try {
+            let response = await dataBase.get(sourceJson.package);
+            if (!response) return;
+            sourceJson['keywords'] = response['keywords'];
+            if (response['readme'] !== 'ERROR: No README data found!') {
+                sourceJson['readme'] = response['readme'];
+            }
+            sourceJson['description'] = response['description'];
 
-    fs.writeFileSync(source, JSON.stringify(sourceJson, null, 2));
+            fs.writeFileSync(source, JSON.stringify(sourceJson, null, 2));
+            return;
+        } catch (e) {
+
+        }
+    }
 }

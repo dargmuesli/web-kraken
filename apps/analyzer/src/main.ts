@@ -46,7 +46,7 @@ program
     .option('-f, --function', 'Show functions')
     .option('-o, --opcode', 'Show opcodes')
     .option('-s, --section', 'Show sections')
-    .option('-n, --npmdata', 'Get npm package data from sources')
+    .option('-n, --npmdata', 'Get npm package data from packages')
     .option('-c, --convert', 'Convert wasm to wat')
     .option('-d, --dump', 'Objdump wasm file')
     .option('-j, --jsonInput <input>', 'Specify the wasm files to analyze in json format')
