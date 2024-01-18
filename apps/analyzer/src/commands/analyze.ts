@@ -1,5 +1,23 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
+import keywords from '../resources/keywords/keywords.json';
+
+function refineKeywords(pkg: any) {
+    if (!pkg.keywords) return;
+    const newKeywords = [];
+    pkg.keywords.forEach((keyword: string) => {
+        Object.keys(keywords).forEach((key: string) => {
+            if (keywords[key].includes(keyword)) {
+                newKeywords.push(key);
+            }
+        });
+    });
+    if (newKeywords.length === 0) {
+        newKeywords.push('Uncategorized');
+        console.log(pkg.package);
+    }
+    pkg.keywords = [...new Set(newKeywords)];
+}
 
 export function analyze(file: string) {
 
@@ -13,6 +31,7 @@ export function analyze(file: string) {
     packages.forEach((packageFile) => {
         const packageJson = JSON.parse(readFileSync(path.join('packages', packageFile)).toString());
         delete packageJson.files;
+        refineKeywords(packageJson);
         packageMap.set(packageJson.package, packageJson);
     });
 
@@ -112,7 +131,6 @@ export function analyze(file: string) {
         if (hasBigIntToI64Integration(exports, imports)) {
             features.push('bigint-to-i64');
         }
-
 
 
         const packageName = source.package;
@@ -250,7 +268,7 @@ function getSectionMap(packageArray: any[]): Map<string, number> {
 
 function getKeywordMap(packageArray: any[]): Map<string, number> {
     const keywordMap = new Map<string, number>();
-    packageArray.forEach((pkg: any) => pkg.keywords?.forEach((keyword: any) =>{
+    packageArray.forEach((pkg: any) => pkg.keywords?.forEach((keyword: any) => {
         if (!keywordMap.has(keyword)) {
             keywordMap.set(keyword, 1);
         } else {
