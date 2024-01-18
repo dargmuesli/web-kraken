@@ -14,7 +14,7 @@ function refineKeywords(pkg: any) {
     });
     if (newKeywords.length === 0) {
         newKeywords.push('Uncategorized');
-        console.log(pkg.package);
+        //console.log(pkg.package);
     }
     pkg.keywords = [...new Set(newKeywords)];
 }
@@ -191,10 +191,26 @@ export function analyze(file: string) {
     console.log();
 
 
-    console.log('------Packages------');
+    console.log('------Keywords------');
     const keywordMap = getKeywordMap(packageArray);
     console.table(keywordMap);
     console.log();
+
+    const cryptoMap = getOpcodesByKeywordMap(packageArray, 'crypto');
+    let cryptoJson = {};
+    cryptoMap.forEach((value: number, key: string) => {
+        cryptoJson[key] = value;
+    });
+
+    const graphicsMap = getOpcodesByKeywordMap(packageArray, 'graphics');
+    let graphicsJson = {};
+    graphicsMap.forEach((value: number, key: string) => {
+        graphicsJson[key] = value;
+    });
+
+
+    writeFileSync('crypto.json', JSON.stringify(cryptoJson, null, 2));
+    writeFileSync('graphics.json', JSON.stringify(graphicsJson, null, 2));
 
 
     writeFileSync('details.json', JSON.stringify({
@@ -278,6 +294,27 @@ function getKeywordMap(packageArray: any[]): Map<string, number> {
     return sortMap(keywordMap);
 }
 
+function getOpcodesByKeywordMap(packageArray: any[], keyword: string): Map<string, number> {
+    const opcodesByKeywordMap = new Map<string, number[]>();
+    packageArray.filter((pkg: any) => pkg.keywords?.includes(keyword))
+        .forEach((pkg: any) => pkg.files.forEach((file: any) => file.opcodes.forEach((opcode: any) => {
+            if (!opcodesByKeywordMap.has(opcode.name)) {
+                opcodesByKeywordMap.set(opcode.name, [parseFloat(opcode.percentage)]);
+            } else {
+                opcodesByKeywordMap.get(opcode.name).push(parseFloat(opcode.percentage));
+            }
+        })));
+
+    const opcodeMap = new Map<string, number>();
+
+    opcodesByKeywordMap.forEach((percentages: number[], key: string) => {
+        const total = percentages.reduce((a: number, b: number) => a + b, 0);
+        opcodeMap.set(key, Math.round(total / percentages.length * 100000) / 100000);
+    });
+
+    return sortMap(opcodeMap);
+}
+
 function sortMap(map: Map<string, number>): Map<string, number> {
     return new Map([...map.entries()].sort((a, b) => b[1] - a[1]));
 }
@@ -324,4 +361,5 @@ function hasBigIntToI64Integration(exports: any[], imports: any): boolean {
     }
     return false;
 }
+
 
