@@ -13,7 +13,7 @@ export async function opcodels(path: string, options: OptionValues) {
         let details = {
             name: opcode.getName(),
             count: (options.count ? opcode.getCount() : undefined),
-            'percentage(%)': (options.count ? opcode.getPercentage() : undefined),
+            percentage: (options.count ? opcode.getPercentage() : undefined),
             feature: (options.feature ? opcode.getFeature() : undefined)
         }
         if (!options.count) {
