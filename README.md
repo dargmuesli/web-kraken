@@ -9,7 +9,7 @@ Currently, the following features are detected:
 #### Standardized features:
 | Detected | Feature                                                                                                                                            | Detection type |
 |:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
-|    ✅     | [JS BigInt to Wasm i64 integration](https://github.com/WebAssembly/JS-BigInt-integration)                                                          | I64 Typing     |
+|    ✅     | [JS BigInt to Wasm i64 integration](https://github.com/WebAssembly/JS-BigInt-integration)                                                          | i64 Typing     |
 |    ✅     | [Bulk Memory Operations](https://github.com/WebAssembly/bulk-memory-operations/blob/master/proposals/bulk-memory-operations/Overview.md)           | Opcodes        |
 |    ❌     | [Extended constant expressions](https://github.com/WebAssembly/extended-const/blob/master/proposals/extended-const/Overview.md)                    |                |
 |    ✅     | [Garbage collection](https://github.com/WebAssembly/gc)                                                                                            | Opcodes        |
@@ -33,7 +33,7 @@ Currently, the following features are detected:
 #### Detection types:
 | Detection type | Description                                                                                                                                                                                                   |
 |----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| I64 Typing     | The feature is detected by checking the usage of i64 typing as parameter or return type of exported/imported functions or globals.                                                                            |
+| i64 Typing     | The feature is detected by checking the usage of i64 typing as parameter or return type of exported/imported functions or globals.                                                                            |
 | Opcodes        | The feature is detected by checking for the presence of specific opcodes. The specific opcodes are defined in their respective proposals or partially via [this link](https://pengowray.github.io/wasm-ops/). |
 | Return types   | The feature is detected by checking for the presence of multiple return types in functions.                                                                                                                   |
 | Mutable        | The feature is detected by checking for the presence of mutable globals via the mutable flag of imported globals or the mutability of exported globals.                                                       |
