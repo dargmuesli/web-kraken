@@ -9,6 +9,7 @@ import {OptionValues} from "commander";
 import { wasm2wat } from './wasm2wat';
 import { objdump } from './objdump';
 import { npmdata } from './npmdata';
+import { datadump } from './datadump';
 
 export async function batch(options: OptionValues) {
     console.log('Batch analyzing wasm files in the directory...');
@@ -26,8 +27,9 @@ export async function batch(options: OptionValues) {
     if (!existsSync('./sections') && options.section) mkdirSync('./sections');
     if (!existsSync('./wat') && options.convert) mkdirSync('./wat');
     if (!existsSync('./objdump') && options.dump) mkdirSync('./objdump');
+    if (!existsSync('./datadump') && options.datadump) mkdirSync('./datadump');
 
-    if (!(options.import || options.function || options.opcode || options.section || options.convert || options.dump)) {
+    if (!(options.import || options.function || options.opcode || options.section || options.convert || options.dump || options.datadump)) {
         wasmFiles = [];
     }
 
@@ -98,6 +100,16 @@ export async function batch(options: OptionValues) {
             try {
                 await objdump(file, {
                     output: path.join('objdump', fileName + '.txt')
+                });
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
+        if (options.datadump) {
+            try {
+                await datadump(file, {
+                    output: path.join('datadump', fileName + '_data.json')
                 });
             } catch (e) {
                 console.log(e)

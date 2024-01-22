@@ -46,6 +46,10 @@ export function analyze(file: string) {
                 };
             }) : [];
 
+        const dataPath = path.join('datadump', file + '_data.json');
+        const hasDataSegment = existsSync(dataPath);
+        const data = hasDataSegment ? JSON.parse(readFileSync(dataPath).toString()) : [];
+
         const sectionPath = path.join('sections', file + '_section.json');
         const sections = existsSync(sectionPath) ? JSON.parse(readFileSync(sectionPath).toString()) : [];
 
@@ -111,6 +115,14 @@ export function analyze(file: string) {
         // JS BigInt to Wasm i64 integration
         if (hasBigIntToI64Integration(exports, imports)) {
             features.push('bigint-to-i64');
+        }
+
+        // multiple memories feature
+        for (let segment of data) {
+            if (segment.memoryId && segment.memoryId > 0) {
+                features.push('multiple-memories');
+                break;
+            }
         }
 
 
