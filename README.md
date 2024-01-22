@@ -1,5 +1,46 @@
 # WASM-Analyzer
 
+## Analyzer
+
+### Feature Detection
+The extended features as defined in the [WebAssembly Roadmap](https://webassembly.org/features/) 
+are detected by the Analyzer. The detection is based on different heuristics. 
+Currently, the following features are detected:
+#### Standardized features:
+| Detected | Feature                                                                                                                                            | Detection type |
+|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+|    ✅     | [JS BigInt to Wasm i64 integration](https://github.com/WebAssembly/JS-BigInt-integration)                                                          | I64 Typing     |
+|    ✅     | [Bulk Memory Operations](https://github.com/WebAssembly/bulk-memory-operations/blob/master/proposals/bulk-memory-operations/Overview.md)           | Opcodes        |
+|    ❌     | [Extended constant expressions](https://github.com/WebAssembly/extended-const/blob/master/proposals/extended-const/Overview.md)                    |                |
+|    ✅     | [Garbage collection](https://github.com/WebAssembly/gc)                                                                                            | Opcodes        |
+|    ❌     | [Multiple memories](https://github.com/WebAssembly/multi-memory/blob/master/proposals/multi-memory/Overview.md)                                    |                |
+|    ✅     | [Multi-value](https://github.com/WebAssembly/spec/blob/master/proposals/multi-value/Overview.md)                                                   | Return types   |
+|    ✅     | [Mutable globals](https://github.com/WebAssembly/mutable-global/blob/master/proposals/mutable-global/Overview.md)                                  | Mutable        |
+|    ✅     | [Reference types](https://github.com/WebAssembly/reference-types/blob/master/proposals/reference-types/Overview.md)                                | Opcodes        |
+|    ✅     | [Relaxed SIMD](https://github.com/WebAssembly/relaxed-simd/tree/main/proposals/relaxed-simd)                                                       | Opcodes        |
+|    ✅     | [Non-trapping float-to-int conversions](https://github.com/WebAssembly/spec/blob/master/proposals/nontrapping-float-to-int-conversion/Overview.md) | Opcodes        |
+|    ✅     | [Sign-extension operations](https://github.com/WebAssembly/spec/blob/master/proposals/nontrapping-float-to-int-conversion/Overview.md)             | Opcodes        |
+|    ✅     | [Fixed-width SIMD](https://github.com/WebAssembly/simd/blob/master/proposals/simd/SIMD.md)                                                         | Opcodes        |
+|    ✅     | [Tail calls](https://github.com/WebAssembly/tail-call/blob/master/proposals/tail-call/Overview.md)                                                 | Opcodes        |
+|    ✅     | [Threads and atomics](https://github.com/WebAssembly/threads/blob/master/proposals/threads/Overview.md)                                            | Opcodes        |
+#### In-progress proposals:
+| Detected | Feature                                                                                                                        | Detection type |
+|:--------:|--------------------------------------------------------------------------------------------------------------------------------|----------------|
+|    ✅     | [Exception Handling](https://github.com/WebAssembly/exception-handling/blob/master/proposals/exception-handling/Exceptions.md) | Opcodes        |
+|    ❌     | [JS Promise Integration](https://github.com/WebAssembly/js-promise-integration)                                                |                |
+|    ❌     | [Memory64](https://github.com/WebAssembly/memory64/blob/master/proposals/memory64/Overview.md)                                 |                |
+|    ❌     | [Type reflection](https://github.com/WebAssembly/js-types/blob/main/proposals/js-types/Overview.md)                            |                |
+#### Detection types:
+| Detection type | Description                                                                                                                                                                                                   |
+|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| I64 Typing     | The feature is detected by checking the usage of i64 typing as parameter or return type of exported/imported functions or globals.                                                                            |
+| Opcodes        | The feature is detected by checking for the presence of specific opcodes. The specific opcodes are defined in their respective proposals or partially via [this link](https://pengowray.github.io/wasm-ops/). |
+| Return types   | The feature is detected by checking for the presence of multiple return types in functions.                                                                                                                   |
+| Mutable        | The feature is detected by checking for the presence of mutable globals via the mutable flag of imported globals or the mutability of exported globals.                                                       |
+
+
+
+
 ## Crawler
 
 ### NPM-Crawling via Docker
@@ -19,70 +60,3 @@
 11. Run `docker-compose build wasm-crawler` to build the image of the crawler. To start the crawler run
     `docker-compose up wasm-crawler`. The crawler will now start to crawl the database. The crawled files will be
     stored in the directory defined in the volumes section of the wasm-crawler service in the docker-compose.yml.
-
-## Autogenerated Nx-Readme:
-
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
-
-✨ **This workspace has been generated by [Nx, a Smart, fast and extensible build system.](https://nx.dev)** ✨
-
-## Start the app
-
-To start the development server run `nx serve my-monorepo`. Open your browser and navigate to http://localhost:4200/.
-Happy coding!
-
-## Generate code
-
-If you happen to use Nx plugins, you can leverage code generators that might come with it.
-
-Run `nx list` to get a list of available plugins and whether they have generators. Then run `nx list <plugin-name>` to
-see what generators are available.
-
-Learn more about [Nx generators on the docs](https://nx.dev/plugin-features/use-code-generators).
-
-## Running tasks
-
-To execute tasks with Nx use the following syntax:
-
-```
-nx <target> <project> <...options>
-```
-
-You can also run multiple targets:
-
-```
-nx run-many -t <target1> <target2>
-```
-
-..or add `-p` to filter specific projects
-
-```
-nx run-many -t <target1> <target2> -p <proj1> <proj2>
-```
-
-Targets can be defined in the `package.json` or `projects.json`. Learn
-more [in the docs](https://nx.dev/core-features/run-tasks).
-
-## Want better Editor Integration?
-
-Have a look at the [Nx Console extensions](https://nx.dev/nx-console). It provides autocomplete support, a UI for
-exploring and running tasks & generators, and more! Available for VSCode, IntelliJ and comes with a LSP for Vim users.
-
-## Ready to deploy?
-
-Just run `nx build demoapp` to build the application. The build artifacts will be stored in the `dist/` directory, ready
-to be deployed.
-
-## Set up CI!
-
-Nx comes with local caching already built-in (check your `nx.json`). On CI you might want to go a step further.
-
-- [Set up remote caching](https://nx.dev/core-features/share-your-cache)
-- [Set up task distribution across multiple machines](https://nx.dev/nx-cloud/features/distribute-task-execution)
-- [Learn more how to setup CI](https://nx.dev/recipes/ci)
-
-## Connect with us!
-
-- [Join the community](https://nx.dev/community)
-- [Subscribe to the Nx Youtube Channel](https://www.youtube.com/@nxdevtools)
-- [Follow us on Twitter](https://twitter.com/nxdevtools)
