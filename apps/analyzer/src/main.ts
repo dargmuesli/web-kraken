@@ -12,6 +12,7 @@ import { wasm2wat } from './commands/wasm2wat';
 import { objdump } from './commands/objdump';
 import { npmdata } from './commands/npmdata';
 import { groupsources } from './commands/groupsources';
+import { datadump } from './commands/datadump';
 
 const program = new Command();
 
@@ -81,6 +82,12 @@ program
     .option('-o, --output [file]', 'Output to file')
     .description('Objdump wrapper command')
     .action(objdump);
+
+program
+    .command('datadump <file>')
+    .option('-o, --output [file]', 'Output to file')
+    .description('Dumps the data section of a wasm file')
+    .action(datadump);
 
 program
     .command('npmdata <source>')
