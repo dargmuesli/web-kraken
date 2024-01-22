@@ -50,6 +50,7 @@ program
     .option('-n, --npmdata', 'Get npm package data from packages')
     .option('-c, --convert', 'Convert wasm to wat')
     .option('-d, --dump', 'Objdump wasm file')
+    .option('-dd, --datadump', 'Dump data section of wasm file')
     .option('-j, --jsonInput <input>', 'Specify the wasm files to analyze in json format')
     .description('Batch analyze wasm files in the directory')
     .action(batch);
