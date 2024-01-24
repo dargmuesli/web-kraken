@@ -104,6 +104,35 @@ export function analyze(file: string) {
             });
         }
 
+        // detect rust and cpp file extensions in data section
+        const rustPattern = /([A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*)\/([A-Za-z0-9_.-]+\.rs)/;
+        let rustMatched = false;
+        const cppPattern = /([A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*)\/([A-Za-z0-9_.-]+\.cpp)/;
+        let cppMatched = false;
+        const charLimit = 100000;
+        for (let segment of data) {
+            const raw = segment.raw.substring(0, charLimit);
+            const rustMatch = rustMatched ? null : raw.match(rustPattern);
+            if (rustMatch) {
+                detectedLanguages.push({
+                    source: 'dataExtension',
+                    language: 'Rust',
+                });
+                rustMatched = true;
+            }
+            const cppMatch = cppMatched ? null : raw.match(cppPattern);
+            if (cppMatch) {
+                detectedLanguages.push({
+                    source: 'dataExtension',
+                    language: 'C++',
+                });
+                cppMatched = true;
+            }
+            if (rustMatched && cppMatched) {
+                break;
+            }
+        }
+
         let features: string[] = [];
 
         // mutable-globals feature
