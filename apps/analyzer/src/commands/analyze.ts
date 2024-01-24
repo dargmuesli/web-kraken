@@ -156,6 +156,28 @@ export function analyze(file: string) {
 
         let features: string[] = [];
 
+        // language detection via import sources
+        if (imports) {
+            for (let imp of imports.functions) {
+                const source = imp.source.toLowerCase();
+                if (source.includes('rust')) {
+                    detectedLanguages.push({
+                        source: 'import',
+                        language: 'Rust'
+                    });
+                    break;
+                }
+                if (source.includes('go.runtime') || source.includes('go.syscall') || source.includes('go.interface') || source.includes('go.mem')) {
+                    detectedLanguages.push({
+                        source: 'import',
+                        language: 'Go'
+                    });
+                    break;
+                }
+            }
+        }
+
+
         // mutable-globals feature
         if (imports && imports.globals) {
             for (let global of imports.globals) {
