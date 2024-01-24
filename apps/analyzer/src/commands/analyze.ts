@@ -109,6 +109,11 @@ export function analyze(file: string) {
         let rustMatched = false;
         const cppPattern = /([A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*)\/([A-Za-z0-9_.-]+\.cpp)/;
         let cppMatched = false;
+        const goPattern = /([A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*)\/([A-Za-z0-9_.-]+\.go)/;
+        let goMatched = false;
+        const asPattern = /([A-Za-z0-9_-]\.)+(\/(\.)([A-Za-z0-9_-]\.)+)*\.\.t\.s/;
+        let asMatched = false;
+
         const charLimit = 100000;
         for (let segment of data) {
             const raw = segment.raw.substring(0, charLimit);
@@ -128,7 +133,23 @@ export function analyze(file: string) {
                 });
                 cppMatched = true;
             }
-            if (rustMatched && cppMatched) {
+            const goMatch = goMatched ? null : raw.match(goPattern);
+            if (goMatch) {
+                detectedLanguages.push({
+                    source: 'dataExtension',
+                    language: 'Go',
+                });
+                goMatched = true;
+            }
+            const asMatch = asMatched ? null : raw.match(asPattern);
+            if (asMatch) {
+                detectedLanguages.push({
+                    source: 'dataExtension',
+                    language: 'AssemblyScript',
+                });
+                asMatched = true;
+            }
+            if (rustMatched && cppMatched && goMatched) {
                 break;
             }
         }
