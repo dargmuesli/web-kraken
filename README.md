@@ -2,9 +2,110 @@
 
 ## Analyzer
 ### Commands
-| Command           | Options               | Description                                               |
-|-------------------|-----------------------|-----------------------------------------------------------|
-| `datadump [file]` | `-o, --output [file]` | Dump all data of the data section of the given wasm file. |
+The following commands are used to analyze wasm files. Most commands are based on the functionalities provided by the [WebAssembly Binary Toolkit (WABT)](https://github.com/webassembly/wabt).
+
+#### funcls
+**Usage:** `funcls [file] [options]`  
+The funcls command generates a list of all functions defined in the given wasm file. Based on the given options, the list instead only includes imported functions.  
+Inside the generated Json format the name, *parameter and *return types and whether the function gets exported or not are included. (*optional)  
+If the function list includes the imported functions, the names of the modules are included as well.  
+The command is based on the WABT `wasm-objdump` command restricted to the `Function` or `Import` sections.  
+Can be used as input for the [analyze](#analyze) command.
+
+| Option                | Description                                                                                                                                                     |
+|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-o, --output [file]` | Output file for the generated function list (Json format). If no name is given, a name based on the input file will be used.                                    |
+| `-t, --type`          | Include parameter and return types in the function list.                                                                                                        |
+| `-i, --import`        | Function list only includes imported functions.                                                                                                                 |
+| `-s, --sort [name]`   | Sorts the function list by the given name. Possible values are: `name`, `source`, `appearence`. Default is `appearence` (order of appearance in the wasm file). |
+
+
+#### opcodels
+**Usage:** `opcodels [file] [options]`  
+The opcodels command generates a list of all opcodes used inside the given wasm file.  
+Inside the generated Json format the name, *count, percentage (count of the opcode divided by total number of opcodes) and *feature of each opcode are included. (*optional)  
+The command is based on the WABT `wasm-opcodecnt` command.  
+Can be used as input for the [analyze](#analyze) command.
+
+| Option                | Description                                                                                                                     |
+|-----------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `-o, --output [file]` | Output file for the generated opcode list (Json format). If no name is given, a name based on the input file will be used.      |
+| `-c, --count`         | Include the count of each opcode in the opcode list.                                                                            |
+| `-f, --feature`       | Include the feature of each opcode in the opcode list. More details inside the [Feature Detection](#feature-detection) section. |
+| `-s, --sort [name]`   | Sorts the opcode list by the given name. Possible values are: `name`, `feature`, `count`. Default is `count`.                   |
+
+#### sectionls
+**Usage:** `sectionls [file] [options]`  
+The sectionls command generates a list of all *custom* sections defined in the given wasm file.  
+Inside the generated Json format the name and raw data of each custom section are included.  
+If the file contains a [producers custom section](https://github.com/WebAssembly/tool-conventions/blob/main/ProducersSection.md) additional information such as source languages, 
+individual tools and SDKs are extracted and included in the Json format.  
+Can be used as input for the [analyze](#analyze) command.
+
+| Option                | Description                                                                                                                 |
+|-----------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| `-o, --output [file]` | Output file for the generated section list (Json format). If no name is given, a name based on the input file will be used. |
+
+#### datadump
+**Usage:** `datadump [file] [options]`  
+The datadump command generates a list of all data segments of the data section defined in the given wasm file.  
+Inside the generated Json format the raw data and the memory index (only for active data segments) of each data segment are included.
+Can be used as input for the [analyze](#analyze) command.
+
+| Option                | Description                                                                                                                      |
+|-----------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `-o, --output [file]` | Output file for the generated data section list (Json format). If no name is given, a name based on the input file will be used. |
+
+#### wasm2wat
+**Usage:** `wasm2wat [file] [options]`  
+The wasm2wat command converts the given wasm file to a wat file.   
+The command is based on the WABT `wasm2wat` command and acts as a wrapper with output functionality.
+
+| Option                | Description                                                                                               |
+|-----------------------|-----------------------------------------------------------------------------------------------------------|
+| `-o, --output [file]` | Output file for the generated wat file. If no name is given, a name based on the input file will be used. |
+
+#### objdump
+**Usage:** `objdump [file] [options]`
+The objdump command outputs information about various sections of the file and a disassembly of the given wasm file.
+The command is based on the WABT `wasm-objdump` command and acts as a wrapper with output functionality.
+
+| Option                | Description                                                                                                   |
+|-----------------------|---------------------------------------------------------------------------------------------------------------|
+| `-o, --output [file]` | Output file for the generated objdump file. If no name is given, a name based on the input file will be used. |
+
+
+#### batch
+**Usage:** `batch [options]`  
+The batch command allows to batch analyze multiple wasm files at once.
+Depending on the given options, the analyzer will execute the corresponding commands for each file including all possible options of the respective command.
+
+| Option                   | Description                                                                                                                                                           |
+|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-i, --import`           | Batch analyze imported functions as seen in the [funcls](#funcls) command including the `-i` option. Resulting output files will be placed in the `import` directory. |
+| `-f, --function`         | Batch analyze functions as seen in the [funcls](#funcls) command. Resulting output files will be placed in the `function` directory.                                  |
+| `-o, --opcode`           | Batch analyze opcodes as seen in the [opcodels](#opcodels) command. Resulting output files will be placed in the `opcode` directory.                                  |
+| `-s, --section`          | Batch analyze sections as seen in the [sectionls](#sectionls) command. Resulting output files will be placed in the `section` directory.                              |
+| `-dd, --datadump`        | Batch analyze data sections as seen in the [datadump](#datadump) command. Resulting output files will be placed in the `datadump` directory.                          |
+| `-c, --convert`          | Batch convert wasm files to wat files as seen in the [wasm2wat](#wasm2wat) command. Resulting output files will be placed in the `wat` directory.                     |
+| `-d, --dump`             | Batch dump wasm files as seen in the [objdump](#objdump) command. Resulting output files will be placed in the `objdump` directory.                                   |
+| `-j, --jsonInput [file]` | Json file containing the list of files to analyze. Without this option, the analyzer will analyze all wasm files in the current directory.                            |
+
+#### analyze
+**Usage:** `analyze [file]`  
+The analyze command analyzes all wasm files in the current directory or the given file.  
+The general idea is to use the already generated output files of the [batch](#batch) command as input for the analyze command.
+For the best results, the following files and directories are required:
+- `import` directory containing the output files of the [funcls](#funcls) command with the `-i` option.
+- `function` directory containing the output files of the [funcls](#funcls) command.
+- `opcode` directory containing the output files of the [opcodels](#opcodels) command.
+- `section` directory containing the output files of the [sectionls](#sectionls) command.
+- `datadump` directory containing the output files of the [datadump](#datadump) command.
+
+To get these files and directories with the correct names, the [batch](#batch) command with according options can be used:  
+`batch -i -f -o -s -dd`  
+The command generates a `details.json` file containing the data of all files and some additional information such as detected [features](#feature-detection) and [languages](#language-detection).
+---
 
 ### Feature Detection
 The extended features as defined in the [WebAssembly Roadmap](https://webassembly.org/features/) 
@@ -43,10 +144,16 @@ Currently, the following features are detected:
 | Return types        | The feature is detected by checking for the presence of multiple return types in functions.                                                                                                                   |
 | Mutable             | The feature is detected by checking for the presence of mutable globals via the mutable flag of imported globals or the mutability of exported globals.                                                       |
 
-
+### Language Detection
 
 
 ## Crawler
+### Crawling types
+#### NPM crawling
+#### GitHub magic number crawling
+#### GitHub WAT crawling
+
+### Commands
 
 ### NPM-Crawling via Docker
 
