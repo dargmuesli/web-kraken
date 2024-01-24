@@ -105,7 +105,6 @@ For the best results, the following files and directories are required:
 To get these files and directories with the correct names, the [batch](#batch) command with according options can be used:  
 `batch -i -f -o -s -dd`  
 The command generates a `details.json` file containing the data of all files and some additional information such as detected [features](#feature-detection) and [languages](#language-detection).
----
 
 ### Feature Detection
 The extended features as defined in the [WebAssembly Roadmap](https://webassembly.org/features/) 
