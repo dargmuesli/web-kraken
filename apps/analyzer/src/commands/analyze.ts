@@ -12,7 +12,26 @@ export function analyze(file: string) {
     const packages = readdirSync('./packages').filter((file) => file.endsWith('_package.json'));
     packages.forEach((packageFile) => {
         const packageJson = JSON.parse(readFileSync(path.join('packages', packageFile)).toString());
+        const packageLanguages = [];
+        if (packageJson.readme) {
+            for (let lang of getLanguagesFromString(packageJson.readme)) {
+                packageLanguages.push({
+                    source: 'readme',
+                    language: lang
+                });
+            }
+        }
+        if (packageJson.description) {
+            for (let lang of getLanguagesFromString(packageJson.description)) {
+                packageLanguages.push({
+                    source: 'description',
+                    language: lang
+                });
+            }
+        }
+
         delete packageJson.files;
+        packageJson.npmLanguages = packageLanguages;
         packageMap.set(packageJson.package, packageJson);
     });
 
@@ -245,7 +264,11 @@ export function analyze(file: string) {
 
 
     console.log('------Languages------');
+    const npmLanguageMap = getNpmLanguageMap(packageArray);
     const languageMap = getLanguageMap(packageArray);
+    console.log('NPM languages:');
+    console.table(npmLanguageMap);
+    console.log('Detected languages:');
     console.table(languageMap);
     console.log();
 
@@ -312,6 +335,27 @@ function getLanguageMap(packageArray: any[]): Map<string, number> {
     return sortMap(languageMap);
 }
 
+function getNpmLanguageMap(packageArray: any[]): Map<string, number> {
+    const languageMap = new Map<string, number>();
+    packageArray.forEach((pkg: any) => {
+        let language;
+        if (!pkg.npmLanguages || pkg.npmLanguages.length === 0) {
+            language = 'Unknown';
+        }
+        else {
+            language = pkg.npmLanguages.map((lang: any) => lang.language).every((lang: string) => lang === pkg.npmLanguages[0].language) ?
+                pkg.npmLanguages[0].language : 'Uncertain';
+        }
+
+        if (!languageMap.has(language)) {
+            languageMap.set(language, 1);
+        } else {
+            languageMap.set(language, languageMap.get(language) + 1);
+        }
+    });
+    return sortMap(languageMap);
+}
+
 function getSectionMap(packageArray: any[]): Map<string, number> {
     const sectionMap = new Map<string, number>();
     packageArray.forEach((pkg: any) => pkg.files.forEach((file: any) => file.sections.forEach((section: any) => {
@@ -369,6 +413,17 @@ function hasBigIntToI64Integration(exports: any[], imports: any): boolean {
         }
     }
     return false;
+}
+
+function getLanguagesFromString(str: string): string[] {
+    const languages = ['Rust', 'Go', 'AssemblyScript', 'C++'];
+    const detectedLanguages = [];
+    for (let lang of languages) {
+        if (str.toLowerCase().includes(lang.toLowerCase())) {
+            detectedLanguages.push(lang);
+        }
+    }
+    return detectedLanguages;
 }
 
 
