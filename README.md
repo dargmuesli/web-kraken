@@ -171,6 +171,7 @@ Current detection status for 1217 wasm files:
 | Uncertain      | 41       |
 | Go             | 22       |
 | C              | 2        |
+
 (Unknown = no information found, Uncertain = multiple languages found)  
 (As of 2024-01-25)
 ## Crawler
