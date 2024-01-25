@@ -147,12 +147,37 @@ Currently, the following features are detected:
 
 
 ## Crawler
-### Crawling types
+### Crawling approaches
 #### NPM crawling
-#### GitHub magic number crawling
-#### GitHub WAT crawling
+Via the [npm public registry](https://docs.npmjs.com/cli/v10/using-npm/registry) and CouchDB replication the crawler is able to download all available npm packages as tarballs and search for wasm files inside them.  
+Wasm files are detected by checking for files with the `.wasm` extension. Additionally, the crawler saves the source and metadata like keywords, description and readme of each package inside  the './packages' directory.  
+The crawler can be used if a locally replicated npm registry via CouchDB is available using the following command:  
+`npm [db]` where db is the name of the database.
 
-### Commands
+| Option                      | Description                                                                                                                                  |
+|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| `-b, --bookmark [bookmark]` | Bookmark to start crawling from. Can be used to continue a previous crawling. The last bookmark will be shown after cancelling the crawling. |
+| `-d, --path [path]`         | Path to saved the crawled files to.                                                                                                          |
+
+A better way to use the npm crawler is via Docker. See [NPM-Crawling via Docker](#npm-crawling-via-docker) for more details.
+
+#### GitHub crawling
+GitHub crawling is based on the [GitHub API](https://docs.github.com/en/rest) and the [GitHub Search API](https://docs.github.com/en/rest/reference/search).
+There are two different ways to crawl for wasm files on GitHub:  
+1. By searching exclusively for WebAssembly files via the `language:WebAssembly` search query, the crawler is able to find and download all available files with the `.wat` extension.
+These files can then be converted to wasm files via the [WABT](https://github.com/webassembly/wabt) tool `wat2wasm`.  
+Wasm files extracted this way are not optimal for further analysis as they are not compiled from source code.
+2. Each wasm file must contain a magic number at the beginning of the file. This magic number is `0061736d` in hex format or `asm` in ASCII format.  
+Some JavaScript files directly contain wasm files as strings inside the source code in a base64 encoded format. The magic number in the base64 format equals `AGFzbQ`.  
+By searching for this string inside JavaScript files via the `AGFzbQ language:JavaScript` search query, the crawler is able to find all embedded wasm files which can then be extracted and converted back to the regular hex format.  
+As the files represent actually compiled wasm files, they are optimal for further analysis and generally more interesting than the files found via the first approach. 
+Because these files are embedded inside JavaScript files as strings, the sizes of the files are on average smaller than the ones found via the NPM crawling approach.
+
+| Option                  | Description                                                                                |
+|-------------------------|--------------------------------------------------------------------------------------------|
+| `-n, --number [number]` | Number of wasm files to download. (Default 1000 or less if not enough files are available) |
+| `-a, --all`             | Crawl for all possible files.                                                              |
+| `-m, --magic [path]`    | Use the magic number approach to find wasm files. (Default is the wat approach)            |
 
 ### NPM-Crawling via Docker
 
