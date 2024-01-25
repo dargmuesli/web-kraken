@@ -144,8 +144,35 @@ Currently, the following features are detected:
 | Mutable             | The feature is detected by checking for the presence of mutable globals via the mutable flag of imported globals or the mutability of exported globals.                                                       |
 
 ### Language Detection
+There are multiple ways to detect the language of a wasm file (sorted by reliability):
+- The [producers custom section](https://github.com/WebAssembly/tool-conventions/blob/main/ProducersSection.md) can contain a field with the source language of the wasm file (generally save to assume).
+- The [go.buildid and go.version custom sections](https://wazero.io/languages/go/)  indicate that the wasm file was compiled from Go source code (generally save to assume).
+- By searching for specific keywords inside the source of each imported function the language of the file might be identified.  
+This approach is not save to assume for some keywords as the keywords might be used in multiple languages.  
+The following keywords are currently supported:
+    - `rust` for Rust
+    - `go.runtime`, `go.syscall`, `go.interface`, `go.mem` for Go
+- By searching for file paths inside the data section of the wasm file, the language of the file might be identified via the file extension.   
+  This approach is not save to assume as the file paths might be wrong or the file might be compiled from multiple source files.   
+  The following file paths are currently supported:
+    - `*.rs` for Rust
+    - `*.cpp` for C++
+    - `*.go` for Go
+    - `*.ts` for AssemblyScript (in a different format)
 
+Current detection status for 1217 wasm files:
 
+| Language       | Detected |
+|----------------|----------|
+| Rust           | 560      |
+| Unknown        | 471      |
+| C++            | 66       |
+| AssemblyScript | 55       |
+| Uncertain      | 41       |
+| Go             | 22       |
+| C              | 2        |
+(Unknown = no information found, Uncertain = multiple languages found)  
+(As of 2024-01-25)
 ## Crawler
 ### Crawling approaches
 #### NPM crawling
@@ -171,7 +198,10 @@ Wasm files extracted this way are not optimal for further analysis as they are n
 Some JavaScript files directly contain wasm files as strings inside the source code in a base64 encoded format. The magic number in the base64 format equals `AGFzbQ`.  
 By searching for this string inside JavaScript files via the `AGFzbQ language:JavaScript` search query, the crawler is able to find all embedded wasm files which can then be extracted and converted back to the regular hex format.  
 As the files represent actually compiled wasm files, they are optimal for further analysis and generally more interesting than the files found via the first approach. 
-Because these files are embedded inside JavaScript files as strings, the sizes of the files are on average smaller than the ones found via the NPM crawling approach.
+Because these files are embedded inside JavaScript files as strings, the sizes of the files are on average smaller than the ones found via the NPM crawling approach.  
+
+The GitHub crawler can be used with the following command:  
+`gitcrawler [toke]` where token is a GitHub access token which is required to use the GitHub API and can be created [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 
 | Option                  | Description                                                                                |
 |-------------------------|--------------------------------------------------------------------------------------------|
