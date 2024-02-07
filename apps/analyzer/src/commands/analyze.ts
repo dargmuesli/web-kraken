@@ -167,7 +167,12 @@ export function analyze(file: string) {
                     });
                     break;
                 }
-                if (source.includes('go.runtime') || source.includes('go.syscall') || source.includes('go.interface') || source.includes('go.mem')) {
+                if (source.includes('go.runtime')
+                    || source.includes('go.syscall')
+                    || source.includes('go.interface')
+                    || source.includes('go.mem')
+                    || source.includes('gojs.')
+                    || source.trim() === 'go') {
                     detectedLanguages.push({
                         source: 'import',
                         language: 'Go'
@@ -278,6 +283,11 @@ export function analyze(file: string) {
     console.table(sectionMap);
     console.log();
 
+    console.log('------Import Sources------');
+    const importSourceMap = getImportSourceMap(packageArray);
+    console.table(importSourceMap);
+    console.log();
+
 
     writeFileSync('details.json', JSON.stringify({
         packages: packageArray
@@ -366,6 +376,22 @@ function getSectionMap(packageArray: any[]): Map<string, number> {
         }
     })));
     return sortMap(sectionMap);
+}
+
+function getImportSourceMap(packageArray: any[]): Map<string, number> {
+    const importSourceMap = new Map<string, number>();
+    packageArray.forEach((pkg: any) => pkg.files.forEach((file: any) => {
+        if (file.imports) {
+            file.imports.functions.forEach((func: any) => {
+                if (!importSourceMap.has(func.source)) {
+                    importSourceMap.set(func.source, 1);
+                } else {
+                    importSourceMap.set(func.source, importSourceMap.get(func.source) + 1);
+                }
+            });
+        }
+    }));
+    return sortMap(importSourceMap);
 }
 
 function sortMap(map: Map<string, number>): Map<string, number> {
