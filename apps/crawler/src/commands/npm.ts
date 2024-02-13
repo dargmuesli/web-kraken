@@ -70,7 +70,12 @@ export async function npm(db: string, options: OptionValues) {
             }
 
             const fileNames = await extractWasm(tarLink, npmPackage._id, options.path);
-            fileNames.forEach((fileName: string) => saveSource(tarLink, npmPackage._id, fileName, options.path));
+            if (fileNames.length === 0) {
+                progressBar.update(elements);
+                continue;
+            }
+
+            savePackage(npmPackage, fileNames, options.path, tarLink);
             progressBar.update(elements);
         }
         bookmark = findResponse.bookmark;
@@ -145,14 +150,18 @@ function extractWasm(tarLink: string, id: string, pathString: string): Promise<s
     });
 }
 
-function saveSource(tarBall: string, name: string, file: string, pathString: string) {
-    if (!existsSync(path.join(pathString, 'sources'))) mkdirSync(path.join(pathString, 'sources'));
-    const sources = {
-        package: name,
+function savePackage(npmPackage, fileNames: string[], pathString: string, tarBall: string) {
+    const packageData = {
+        package: npmPackage._id,
         tarball: tarBall,
-        type: 'npm'
+        type: 'npm',
+        files: fileNames,
+        description: npmPackage.description,
+        readme: npmPackage.readme,
+        keywords: npmPackage.keywords
     };
-    const wasmEndIndex = file.lastIndexOf('.wasm');
-    file = file.substring(0, wasmEndIndex) + '_sources.json';
-    writeFileSync(path.join(pathString, 'sources', file), JSON.stringify(sources, null, 2))
+
+    if (!existsSync(path.join(pathString, 'packages'))) mkdirSync(path.join(pathString, 'packages'));
+
+    fs.writeFileSync(path.join('./packages', npmPackage._id.replace('@', '').replace('/', '_') + '_package.json'), JSON.stringify(packageData, null, 2));
 }
