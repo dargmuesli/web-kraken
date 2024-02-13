@@ -32,7 +32,7 @@ export async function npm(db: string, options: OptionValues) {
 
     // Interrupt handling
     if (process.platform === "win32") {
-        let rl = require("readline").createInterface({
+        const rl = require("readline").createInterface({
             input: process.stdin,
             output: process.stdout
         });
@@ -50,14 +50,14 @@ export async function npm(db: string, options: OptionValues) {
     });
 
     while (true) {
-        let findResponse: any = await dataBase.find({
+        const findResponse = await dataBase.find({
             selector: {
                 "_id": {"$gte": null},
                 "versions": {"$gte": {}}
             },
             bookmark: bookmark
         });
-        for (let npmPackage of findResponse.docs) {
+        for (const npmPackage of findResponse.docs) {
             elements++;
             if (!npmPackage.versions || npmPackage.versions.length === 0) continue;
             const versions = npmPackage.versions;
