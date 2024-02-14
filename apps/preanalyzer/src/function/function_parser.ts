@@ -14,8 +14,8 @@ export async function getFunctionList(file: string, types?: string[]): Promise<F
     return functionList.concat(importList);
 }
 
-export async function getExportList(path: string): Promise<string[]> {
-    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Export', './' + path]);
+export async function getExportList(file: string): Promise<string[]> {
+    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Export', './' + file]);
     const lines = result.split(/\n/);
     const regex = /"[^"]+"/g;
     const exportList: string[] = [];
@@ -50,8 +50,8 @@ export async function getNonImportFunctionList(file: string, exportList: string[
     return functionList;
 }
 
-export async function getImportFunctionList(path: string, types: string[]): Promise<Function[]> {
-    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Import', './' + path]);
+export async function getImportFunctionList(file: string, types: string[]): Promise<Function[]> {
+    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Import', './' + file]);
     const functionString = result.substring(result.indexOf('- func'));
     const lines = functionString.split(/\n/);
     const functionList: Function[] = [];
@@ -73,30 +73,16 @@ export async function getImportFunctionList(path: string, types: string[]): Prom
     return functionList;
 }
 
-/*
-export async function getImportedGlobalList(path: string): Promise<Global[]> {
-    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Import', './' + path]);
+export async function hasMutableGlobals(file: string): Promise<boolean> {
+    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Global', './' + file]);
     const globalIndex = result.indexOf('- global');
-    if (globalIndex === -1) return [];
+    if (globalIndex === -1) return false;
     const functionString = result.substring(globalIndex);
     const lines = functionString.split(/\n/);
-    const importedGlobalList: Global[] = [];
 
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].indexOf('global') === -1) continue;
-        // - global[3] i32 mutable=1 <- GOT.func.PyAIter_Check
-        const parts = lines[i].split('<-');
-        const type = parts[0].split('global')[1].split(' ')[1];
-        const mutableIndex = parts[0].indexOf('mutable=');
-        const mutable: boolean | undefined = mutableIndex !== -1 ? (parts[0].charAt(mutableIndex + 'mutable='.length) === '1') : undefined;
-
-        const cutIndex = parts[1].lastIndexOf('.');
-        const source = parts[1].substring(0, cutIndex);
-        const name = parts[1].substring(cutIndex + 1);
-        importedGlobalList.push(new Global(name, type, source, mutable));
+    for (const line of lines) {
+        if (line.indexOf('mutable=1') !== -1) return true;
     }
-    return importedGlobalList;
+    return false;
 }
-
- */
 

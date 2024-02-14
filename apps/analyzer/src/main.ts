@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 import { Command } from 'commander';
-import * as figlet from 'figlet';
+import figlet from 'figlet';
 import { batch } from './commands/batch';
 import { analyze } from './commands/analyze';
 import { wasm2wat } from './commands/wasm2wat';

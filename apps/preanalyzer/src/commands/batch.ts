@@ -2,7 +2,7 @@ import { OptionValues } from 'commander';
 import fs, { existsSync, mkdirSync, readdirSync, readFileSync } from 'fs';
 import path from 'path';
 import { getDataSections } from '../data/data_parser';
-import { getFunctionList } from '../function/function_parser';
+import { getFunctionList, hasMutableGlobals } from '../function/function_parser';
 import { getOpcodeList } from '../opcode/opcode_parser';
 import { getCustomSectionList } from '../section/section_parser';
 
@@ -26,12 +26,14 @@ export async function batch(options: OptionValues) {
         const functions = await getFunctionList(file);
         const opcodes = await getOpcodeList(file);
         const sections = await getCustomSectionList(file);
+        const features = await hasMutableGlobals(file) ? ['mutable-globals'] : [];
 
         const details = {
             dataSegments,
             functions,
             opcodes,
-            sections
+            sections,
+            features
         };
         fs.writeFileSync( './data/' + file.replace(/\.[^/.]+$/, "") + '_data.json', JSON.stringify(details, null, 2));
     }
