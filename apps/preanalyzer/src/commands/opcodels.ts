@@ -14,13 +14,13 @@ export async function opcodels(file: string, options: OptionValues) {
     }
 
     if (options.sort === 'name') {
-        opcodeList.sort((a: any, b: any) => {
-            return a.name.localeCompare(b.name);
+        opcodeList.sort((a, b) => {
+            return a.getName().localeCompare(b.getName());
         });
     }
     if (options.sort === 'feature') {
-        opcodeList.sort((a: any, b: any) => {
-            return a.feature.localeCompare(b.feature);
+        opcodeList.sort((a, b) => {
+            return a.getFeature().localeCompare(b.getFeature());
         });
     }
 
