@@ -6,6 +6,7 @@ import { datadump } from './commands/datadump';
 import { sectionls } from './commands/sectionls';
 import { opcodels } from './commands/opcodels';
 import { funcls } from './commands/funcls';
+import { batch } from './commands/batch';
 
 const program = new Command();
 
@@ -40,5 +41,11 @@ program
     .option('-o, --output [file]', 'Output to file')
     .option('-s, --sort [sort]', 'Sort by name|feature|count(default)')
     .action(opcodels);
+
+program
+    .command('batch')
+    .option('-j, --jsonInput <input>', 'Specify the wasm files to analyze in json format')
+    .description('Batch analyze wasm files in the directory')
+    .action(batch);
 
 program.parse(process.argv);

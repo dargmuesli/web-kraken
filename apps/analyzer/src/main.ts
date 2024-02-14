@@ -1,7 +1,6 @@
 #! /usr/bin/env node
 
 import {Command} from "commander";
-import {funcls} from "../../preanalyzer/src/commands/funcls";
 import * as figlet from "figlet";
 import {batch} from "./commands/batch";
 import {ast} from "./commands/ast";
@@ -18,7 +17,6 @@ console.log(figlet.textSync("WASM-Analyzer"));
 program
     .version("0.0.1")
     .description("WASM-Analyzer is a tool to analyze WebAssembly files");
-
 
 program
     .command('batch')
