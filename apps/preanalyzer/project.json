@@ -1,0 +1,70 @@
+{
+    "name": "preanalyzer",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/preanalyzer/src",
+    "projectType": "application",
+    "targets": {
+        "build": {
+            "executor": "@nx/esbuild:esbuild",
+            "outputs": ["{options.outputPath}"],
+            "defaultConfiguration": "production",
+            "options": {
+                "platform": "node",
+                "outputPath": "dist/apps/preanalyzer",
+                "format": ["cjs"],
+                "bundle": false,
+                "main": "apps/preanalyzer/src/main.ts",
+                "tsConfig": "apps/preanalyzer/tsconfig.app.json",
+                "assets": ["apps/preanalyzer/src/assets"],
+                "generatePackageJson": true,
+                "esbuildOptions": {
+                    "sourcemap": true,
+                    "outExtension": {
+                        ".js": ".js"
+                    }
+                }
+            },
+            "configurations": {
+                "development": {},
+                "production": {
+                    "esbuildOptions": {
+                        "sourcemap": false,
+                        "outExtension": {
+                            ".js": ".js"
+                        }
+                    }
+                }
+            }
+        },
+        "serve": {
+            "executor": "@nx/js:node",
+            "defaultConfiguration": "development",
+            "options": {
+                "buildTarget": "preanalyzer:build"
+            },
+            "configurations": {
+                "development": {
+                    "buildTarget": "preanalyzer:build:development"
+                },
+                "production": {
+                    "buildTarget": "preanalyzer:build:production"
+                }
+            }
+        },
+        "lint": {
+            "executor": "@nx/eslint:lint",
+            "outputs": ["{options.outputFile}"],
+            "options": {
+                "lintFilePatterns": ["apps/preanalyzer/**/*.ts"]
+            }
+        },
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "options": {
+                "jestConfig": "apps/preanalyzer/jest.config.ts"
+            }
+        }
+    },
+    "tags": []
+}
