@@ -9,7 +9,7 @@ import {OptionValues} from "commander";
 import { wasm2wat } from './wasm2wat';
 import { objdump } from './objdump';
 import { npmdata } from './npmdata';
-import { datadump } from './datadump';
+import { datadump } from '../../../preanalyzer/src/commands/datadump';
 
 export async function batch(options: OptionValues) {
     console.log('Batch analyzing wasm files in the directory...');

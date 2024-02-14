@@ -2,7 +2,7 @@
 
 import { Command } from 'commander';
 import figlet from 'figlet';
-import { test } from './commands/test';
+import { datadump } from './commands/datadump';
 
 const program = new Command();
 
@@ -13,8 +13,9 @@ program
     .description("WASM-Analyzer is a tool to analyze WebAssembly files");
 
 program
-    .command('test <echo>')
-    .description('Test command')
-    .action(test);
+    .command('datadump <file>')
+    .option('-o, --output [file]', 'Output to file')
+    .description('Dumps the data section of a wasm file')
+    .action(datadump);
 
 program.parse(process.argv);

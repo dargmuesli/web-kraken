@@ -1,13 +1,11 @@
-import { getCommandResult } from '../util/util';
-import { OptionValues } from 'commander';
-import fs from 'fs';
 import { Data } from '../entity/data';
+import { getCommandResult } from '../util/util';
 
-
-export async function datadump(file: string, options: OptionValues) {
+export async function getDataSections(file: string): Promise<Data[]> {
     const result = await getCommandResult('wasm-objdump', ['./' + file, '-x', '-j', 'Data']);
+
     const dataString = result.split(/Data\[[0-9]+]:/g)[1];
-    if (!dataString) return;
+    if (!dataString) return [];
     const lines = dataString.split(/\n/);
 
     let currentSize = -1;
@@ -35,14 +33,5 @@ export async function datadump(file: string, options: OptionValues) {
     });
     segments.push(new Data(currentMemory, currentData));
 
-
-    if (options.output) {
-        let output = options.output;
-        if (options.output === true) {
-            output = file.replace(/\.[^/.]+$/, "") + '.json';
-        }
-        fs.writeFileSync(output, JSON.stringify(segments, null, 2));
-        return;
-    }
-    console.log(segments);
+    return segments;
 }
