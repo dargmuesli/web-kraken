@@ -1,6 +1,6 @@
-import {getCommandResult} from "../util/util";
-import {Opcode} from "../entity/opcode";
-import {getFeature, getFeatureMap} from "./feature_parser";
+import { Opcode } from '../entity/opcode';
+import { getFeature } from './feature_parser';
+import { getCommandResult } from '../util/util';
 
 export async function getOpcodeList(path: string): Promise<Opcode[]> {
     const result = await getCommandResult('wasm-opcodecnt', ['./' + path, '--enable-all']);
@@ -13,16 +13,15 @@ export async function getOpcodeList(path: string): Promise<Opcode[]> {
     const total = parseInt(strings[0].split(': ')[1]);
     let lines = strings[1].split(/\n/);
 
-    const featureMap = getFeatureMap();
     for (let i = 1; i < lines.length; i++) {
         let parts = lines[i].split(/:/);
         let opcode = parts[0].trim();
 
         let count = parseInt(parts[1].trim());
         const percentage = (count / total * 100).toFixed(5);
-        let feature = getFeature(opcode, featureMap);
+        let feature = getFeature(opcode);
         if (feature === undefined) {
-            console.log(path + ": " + opcode);
+            console.log(path + ': ' + opcode);
         }
         opcodeList.push(new Opcode(opcode, count, percentage, feature));
     }

@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync } from 'fs';
 import path from "path";
 import PouchDB from 'pouchdb';
 import {funcls} from "./funcls";
-import {opcodels} from "./opcodels";
+import {opcodels} from "../../../preanalyzer/src/commands/opcodels";
 import {getTypeTable} from "../type/type_parser";
 import {sectionls} from "../../../preanalyzer/src/commands/sectionls";
 import {OptionValues} from "commander";
