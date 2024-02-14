@@ -15,7 +15,13 @@
                 "bundle": false,
                 "main": "apps/preanalyzer/src/main.ts",
                 "tsConfig": "apps/preanalyzer/tsconfig.app.json",
-                "assets": ["apps/preanalyzer/src/assets"],
+                "assets": [
+                    {
+                        "glob": "**/*",
+                        "input": "apps/preanalyzer/src/resources/",
+                        "output": "./apps/preanalyzer/src/resources/"
+                    }
+                ],
                 "generatePackageJson": true,
                 "esbuildOptions": {
                     "sourcemap": true,
