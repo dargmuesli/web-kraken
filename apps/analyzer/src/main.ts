@@ -12,7 +12,6 @@ import { wasm2wat } from './commands/wasm2wat';
 import { objdump } from './commands/objdump';
 import { npmdata } from './commands/npmdata';
 import { groupsources } from './commands/groupsources';
-import { datadump } from '../../preanalyzer/src/commands/datadump';
 
 const program = new Command();
 

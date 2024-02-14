@@ -12,7 +12,7 @@ export async function datadump(file: string, options: OptionValues): Promise<voi
     if (options.output) {
         let output = options.output;
         if (options.output === true) {
-            output = file.replace(/\.[^/.]+$/, "") + '.json';
+            output = file.replace(/\.[^/.]+$/, "") + '_data.json';
         }
         fs.writeFileSync(output, JSON.stringify(segments, null, 2));
         return;
