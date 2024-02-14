@@ -5,6 +5,7 @@ import figlet from 'figlet';
 import { datadump } from './commands/datadump';
 import { sectionls } from './commands/sectionls';
 import { opcodels } from './commands/opcodels';
+import { funcls } from './commands/funcls';
 
 const program = new Command();
 
@@ -21,6 +22,13 @@ program
     .action(datadump);
 
 program
+    .command('funcls <file>')
+    .description('List all functions of the wasm file')
+    .option('-o, --output [file]', 'Output to file', )
+    .option('-s, --sort [name]', 'Sort by name|source|appearance(default)')
+    .action(funcls);
+
+program
     .command('sectionls <file>')
     .description('List all custom sections of the wasm file')
     .option('-o, --output [file]', 'Output to file')
@@ -29,8 +37,6 @@ program
 program
     .command('opcodels <file>')
     .description('Opcodes in the wasm file')
-    .option('-c, --count', 'Show count of each opcode')
-    .option('-f, --feature', 'Show feature of each opcode')
     .option('-o, --output [file]', 'Output to file')
     .option('-s, --sort [sort]', 'Sort by name|feature|count(default)')
     .action(opcodels);

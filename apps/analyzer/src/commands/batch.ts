@@ -1,9 +1,9 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync } from 'fs';
 import path from "path";
 import PouchDB from 'pouchdb';
-import {funcls} from "./funcls";
+import {funcls} from "../../../preanalyzer/src/commands/funcls";
 import {opcodels} from "../../../preanalyzer/src/commands/opcodels";
-import {getTypeTable} from "../type/type_parser";
+import {getTypeTable} from "../../../preanalyzer/src/type/type_parser";
 import {sectionls} from "../../../preanalyzer/src/commands/sectionls";
 import {OptionValues} from "commander";
 import { wasm2wat } from './wasm2wat';

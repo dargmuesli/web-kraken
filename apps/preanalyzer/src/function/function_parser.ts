@@ -1,11 +1,34 @@
-import {getCommandResult} from "../util/util";
-import {Function} from "../entity/function";
-import { Global } from '../entity/global';
+import { Function } from '../entity/function';
+//import { Global } from '../../../analyzer/src/entity/global';
+import { getTypeTable } from '../type/type_parser';
+import { getCommandResult } from '../util/util';
+import { functionType } from '../entity/function_type';
 
-export async function getFunctionList(path: string): Promise<Function[]> {
-    const exportList = await getExportList(path);
+export async function getFunctionList(file: string, types?: string[]): Promise<Function[]> {
+    const exportList = await getExportList(file);
+    const typeList = types ? types : await getTypeTable(file);
 
-    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Function', './' + path]);
+    const functionList = await getNonImportFunctionList(file, exportList, typeList);
+    const importList = await getImportFunctionList(file, typeList);
+
+    return functionList.concat(importList);
+}
+
+export async function getExportList(path: string): Promise<string[]> {
+    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Export', './' + path]);
+    const lines = result.split(/\n/);
+    const regex = /"[^"]+"/g;
+    const exportList: string[] = [];
+    for (let line of lines) {
+        const regExpMatchArray = line.match(regex);
+        if (!regExpMatchArray) continue;
+        exportList.push(regExpMatchArray[0].substring(1, regExpMatchArray[0].length - 1));
+    }
+    return exportList;
+}
+
+export async function getNonImportFunctionList(file: string, exportList: string[], types: string[]): Promise<Function[]> {
+    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Function', './' + file]);
     const functionString = result.substring(result.indexOf('- func'));
     const lines = functionString.split(/\n/);
     const functionList: Function[] = [];
@@ -20,13 +43,14 @@ export async function getFunctionList(path: string): Promise<Function[]> {
 
         const sigIndex = lines[i].indexOf('sig=') + 'sig='.length;
         const typeIndex = parseInt(lines[i].substring(sigIndex, sigIndex + 1));
+        const type = types[typeIndex].split('->');
 
-        functionList.push(new Function(name, typeIndex, exportList.indexOf(name) !== -1));
+        functionList.push(new Function(name, type[0].trim(), type[1].trim(), exportList.indexOf(name) === -1 ? functionType.INTERNAL : functionType.EXPORT));
     }
     return functionList;
 }
 
-export async function getImportList(path: string): Promise<Function[]> {
+export async function getImportFunctionList(path: string, types: string[]): Promise<Function[]> {
     const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Import', './' + path]);
     const functionString = result.substring(result.indexOf('- func'));
     const lines = functionString.split(/\n/);
@@ -41,25 +65,15 @@ export async function getImportList(path: string): Promise<Function[]> {
         const source = parts[1].substring(0, cutIndex);
         const name = parts[1].substring(cutIndex + 1);
 
-        const type = parseInt(parts[0].split('sig=')[1].split(' ')[0]);
-        functionList.push(new Function(name, type, undefined, source));
+        const typeIndex = parseInt(parts[0].split('sig=')[1].split(' ')[0]);
+        const type = types[typeIndex].split('->');
+
+        functionList.push(new Function(name, type[0].trim(), type[1].trim(), functionType.IMPORT, source));
     }
     return functionList;
 }
 
-export async function getExportList(path: string): Promise<String[]> {
-    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Export', './' + path]);
-    const lines = result.split(/\n/);
-    const regex = /"[^"]+"/g;
-    const exportList: String[] = [];
-    for (let line of lines) {
-        const regExpMatchArray = line.match(regex);
-        if (!regExpMatchArray) continue;
-        exportList.push(regExpMatchArray[0].substring(1, regExpMatchArray[0].length - 1));
-    }
-    return exportList;
-}
-
+/*
 export async function getImportedGlobalList(path: string): Promise<Global[]> {
     const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Import', './' + path]);
     const globalIndex = result.indexOf('- global');
@@ -83,4 +97,6 @@ export async function getImportedGlobalList(path: string): Promise<Global[]> {
     }
     return importedGlobalList;
 }
+
+ */
 
