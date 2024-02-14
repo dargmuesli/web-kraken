@@ -1,6 +1,6 @@
 import { OptionValues } from 'commander';
 import fs from 'fs';
-import { getDataSections } from '../data/data';
+import { getDataSections } from '../data/data_parser';
 
 
 export async function datadump(file: string, options: OptionValues): Promise<void>{
@@ -9,6 +9,10 @@ export async function datadump(file: string, options: OptionValues): Promise<voi
         return;
     }
     const segments = await getDataSections(file);
+    if (segments.length === 0) {
+        return;
+    }
+
     if (options.output) {
         let output = options.output;
         if (options.output === true) {

@@ -4,7 +4,7 @@ import PouchDB from 'pouchdb';
 import {funcls} from "./funcls";
 import {opcodels} from "./opcodels";
 import {getTypeTable} from "../type/type_parser";
-import {sectionls} from "./sectionls";
+import {sectionls} from "../../../preanalyzer/src/commands/sectionls";
 import {OptionValues} from "commander";
 import { wasm2wat } from './wasm2wat';
 import { objdump } from './objdump';
