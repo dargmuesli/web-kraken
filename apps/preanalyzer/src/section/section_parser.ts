@@ -1,5 +1,6 @@
-import {getCommandResult} from "../util/util";
+
 import {ProducersSection, Section} from "../entity/section";
+import { getCommandResult } from '../util/util';
 
 export async function getCustomSectionList(path: string) {
     const result = await getCommandResult('wasm-objdump', ['-h', './' + path]);

@@ -5,7 +5,6 @@ import {funcls} from "./commands/funcls";
 import {opcodels} from "./commands/opcodels";
 import * as figlet from "figlet";
 import {batch} from "./commands/batch";
-import {sectionls} from "./commands/sectionls";
 import {ast} from "./commands/ast";
 import {analyze} from "./commands/analyze";
 import { wasm2wat } from './commands/wasm2wat';
@@ -53,13 +52,6 @@ program
     .option('-j, --jsonInput <input>', 'Specify the wasm files to analyze in json format')
     .description('Batch analyze wasm files in the directory')
     .action(batch);
-
-
-program
-    .command('sectionls <path>')
-    .description('List all custom sections of the wasm file')
-    .option('-o, --output [file]', 'Output to file')
-    .action(sectionls);
 
 program
     .command('ast <path>')
