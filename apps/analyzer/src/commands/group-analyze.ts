@@ -19,6 +19,7 @@ export function groupAnalyze(options: OptionValues) {
     let sectionMap = new Map<string, number>();
     let featureMap = new Map<string, number>();
     let languageMap = new Map<string, number>();
+    let opcodeMap = new Map<string, number>();
 
     files.forEach((file) => {
         const data = JSON.parse(readFileSync(path.join('data_extended', file)).toString());
@@ -34,6 +35,10 @@ export function groupAnalyze(options: OptionValues) {
         if (data.opcodes.length > 0) {
             filesWithOpcodes++;
         }
+        data.opcodes.forEach((opcode) => {
+            const percentage: number = parseFloat(opcode.percentage);
+            opcodeMap.set(opcode.name, opcodeMap.has(opcode.name) ? opcodeMap.get(opcode.name) + percentage : percentage);
+        });
 
         // sections
         data.sections.forEach((section: any) => {
@@ -59,9 +64,13 @@ export function groupAnalyze(options: OptionValues) {
         }
     });
 
+    // round the values of the opcodeMap to 5 decimal places
+    opcodeMap = new Map([...opcodeMap.entries()].map(([key, value]) => [key, Math.round(value * 100000 / filesWithOpcodes) / 100000]));
+
     sectionMap = sortMap(sectionMap);
     featureMap = sortMap(featureMap);
     languageMap = sortMap(languageMap);
+    opcodeMap = sortMap(opcodeMap);
 
     const averageImportedFunctions = Math.round(importedFunctions / totalFiles * 100) / 100;
     const averageExportedFunctions = Math.round(exportedFunctions / totalFiles * 100) / 100;
@@ -77,7 +86,7 @@ export function groupAnalyze(options: OptionValues) {
             },
             opcodes: {
                 filesWithOpcodes,
-                totalFiles
+                'map': Object.fromEntries(opcodeMap)
             },
             sections: Object.fromEntries(sectionMap),
             features: Object.fromEntries(featureMap),
