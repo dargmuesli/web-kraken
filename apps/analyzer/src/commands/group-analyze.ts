@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, writeFileSync } from 'fs';
+import fs, { readdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { OptionValues } from 'commander';
 
@@ -13,6 +13,7 @@ export function groupAnalyze(options: OptionValues) {
     let importedFunctions = 0;
     let exportedFunctions = 0;
     let internalFunctions = 0;
+    let fileSizes = 0;
 
     let filesWithOpcodes = 0;
 
@@ -23,6 +24,7 @@ export function groupAnalyze(options: OptionValues) {
 
     files.forEach((file) => {
         const data = JSON.parse(readFileSync(path.join('data_extended', file)).toString());
+        fileSizes += fs.statSync(file.replace('_data_extended.json', '.wasm')).size;
 
         const imports = data.functions.filter((func: any) => func.type === 'IMPORT');
 
@@ -75,10 +77,12 @@ export function groupAnalyze(options: OptionValues) {
     const averageImportedFunctions = Math.round(importedFunctions / totalFiles * 100) / 100;
     const averageExportedFunctions = Math.round(exportedFunctions / totalFiles * 100) / 100;
     const averageInternalFunctions = Math.round(internalFunctions / totalFiles * 100) / 100;
+    const averageFileSize = Math.round(fileSizes / totalFiles) / 1000000;
 
     if (options.output) {
         const output = {
             files: totalFiles,
+            fileSize_mb: averageFileSize,
             functions: {
                 imported: averageImportedFunctions,
                 exported: averageExportedFunctions,
@@ -98,6 +102,7 @@ export function groupAnalyze(options: OptionValues) {
 
 
     console.log('Number of files: ' + files.length);
+    console.log('Average file size: ' + averageFileSize);
     console.log();
 
     console.log('------Functions------');
