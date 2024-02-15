@@ -7,6 +7,7 @@ import { analyze } from './commands/analyze';
 import { wasm2wat } from './commands/wasm2wat';
 import { objdump } from './commands/objdump';
 import { groupAnalyze } from './commands/group-analyze';
+import { keywordfiles } from './commands/keywordfiles';
 
 
 const program = new Command();
@@ -47,5 +48,12 @@ program
     .option('-o, --output [file]', 'Output to file')
     .description('Objdump wrapper command')
     .action(objdump);
+
+program
+    .command('keywordfiles <output>')
+    .option('-i, --invert', 'Invert the search')
+    .description('Saves the files that contain the keywords in a json file')
+    .argument('<keywords...>')
+    .action(keywordfiles);
 
 program.parse(process.argv);
