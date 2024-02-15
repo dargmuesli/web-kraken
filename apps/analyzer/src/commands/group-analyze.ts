@@ -1,10 +1,12 @@
 import { readdirSync, readFileSync } from 'fs';
 import path from 'path';
+import { OptionValues } from 'commander';
 
-export function groupAnalyze() {
+export function groupAnalyze(options: OptionValues) {
 
+    const jsonInput = options.jsonInput ? JSON.parse(readFileSync(options.jsonInput).toString()) : null;
     const files = readdirSync(path.join(process.cwd(), 'data_extended'))
-        .filter((file) => file.endsWith('_data_extended.json'));
+        .filter((file) => file.endsWith('_data_extended.json') && (!jsonInput || jsonInput.includes(file)));
 
     const totalFiles = files.length;
 

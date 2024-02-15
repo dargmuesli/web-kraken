@@ -33,6 +33,7 @@ program
 program
     .command('group-analyze')
     .description('Analyze wasm files in the directory and group the results')
+    .option('-j, --jsonInput <input>', 'Specify the wasm files to analyze in json format')
     .action(groupAnalyze);
 
 program
