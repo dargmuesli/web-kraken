@@ -1,13 +1,52 @@
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
+import { language_detection } from '../language/language_detection';
+import { feature_detection } from '../features/feature_detection';
 
-export function analyze(file: string) {
-
+export function analyze() {
+    /*
     const wasmFiles = file ?
         [file.replace(/\.[^/.]+$/, '')] : readdirSync(process.cwd())
             .filter((file) => path.extname(file).toLowerCase() === '.wasm')
             .map((file) => file.replace(/\.[^/.]+$/, ''));
 
+     */
+
+    if (!existsSync('./data_extended')) mkdirSync('./data_extended');
+
+    const files = readdirSync(path.join(process.cwd(), 'data'))
+        .filter((file) => path.extname(file).toLowerCase() === '.json');
+        //.map((file) => file.replace(/\.[^/.]+$/, ''));
+
+    files.forEach((file) => {
+        const data = JSON.parse(readFileSync(path.join('data', file)).toString());
+
+        const languages = language_detection(data);
+        const features = feature_detection(data);
+
+        data['languages'] = languages;
+        data['features'] = features;
+
+        writeFileSync(path.join('data_extended', file.replace('_data.json', '_data_extended.json')), JSON.stringify(data, null, 2));
+    });
+
+
+    /*
+    const data = JSON.parse(readFileSync(file).toString())
+
+
+    const languages = language_detection(data);
+    const features = feature_detection(data);
+
+    data['languages'] = languages;
+    data['features'] = features;
+
+    writeFileSync('data_extended.json', JSON.stringify({data}, null, 2));
+
+     */
+
+
+    /*
     const packageMap = new Map<String, any>;
     const packages = readdirSync('./packages').filter((file) => file.endsWith('_package.json'));
     packages.forEach((packageFile) => {
@@ -37,7 +76,6 @@ export function analyze(file: string) {
 
 
     wasmFiles.forEach((file) => {
-
         const opcodePath = path.join('opcode', file + '_opcode.json');
         const opcodes = existsSync(opcodePath) ? JSON.parse(readFileSync(opcodePath).toString()) : null;
 
@@ -75,151 +113,6 @@ export function analyze(file: string) {
         const sourcesPath = path.join('sources', file + '_sources.json');
         const source = existsSync(sourcesPath) ? JSON.parse(readFileSync(sourcesPath).toString()) : null;
 
-        const detectedLanguages = [];
-
-        // detect language via producers section
-        const languageSection = sections.filter((section: any) => section.name === 'producers' && section.language);
-        if (languageSection.length > 0) {
-            const languageAndVersion = getLanguageAndVersion(languageSection[0].language);
-            detectedLanguages.push({
-                source: 'producers',
-                language: languageAndVersion.language,
-                version: languageAndVersion.version
-            });
-        }
-
-        // detect go language via buildid or version section
-        const goBuildIdSection = sections.filter((section: any) => section.name.includes('go') && section.name.includes('buildid'));
-        const goVersionSection = sections.filter((section: any) => section.name.includes('go') && section.name.includes('version'));
-        if (goBuildIdSection.length > 0) {
-            detectedLanguages.push({
-                source: 'go.buildid',
-                language: 'Go',
-                version: goVersionSection.length > 0 ? goVersionSection[0].raw.replace('.go.version', '') : null
-            });
-        } else if (goVersionSection.length > 0) {
-            detectedLanguages.push({
-                source: 'go.version',
-                language: 'Go'
-            });
-        }
-
-        // detect rust and cpp file extensions in data section
-        const rustPattern = /([A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*)\/([A-Za-z0-9_.-]+\.rs)/;
-        let rustMatched = false;
-        const cppPattern = /([A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*)\/([A-Za-z0-9_.-]+\.cpp)/;
-        let cppMatched = false;
-        const goPattern = /([A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*)\/([A-Za-z0-9_.-]+\.go)/;
-        let goMatched = false;
-        const asPattern = /([A-Za-z0-9_-]\.)+(\/(\.)([A-Za-z0-9_-]\.)+)*\.\.t\.s/;
-        let asMatched = false;
-
-        const charLimit = 100000;
-        for (let segment of data) {
-            const raw = segment.raw.substring(0, charLimit);
-            const rustMatch = rustMatched ? null : raw.match(rustPattern);
-            if (rustMatch) {
-                detectedLanguages.push({
-                    source: 'dataExtension',
-                    language: 'Rust',
-                });
-                rustMatched = true;
-            }
-            const cppMatch = cppMatched ? null : raw.match(cppPattern);
-            if (cppMatch) {
-                detectedLanguages.push({
-                    source: 'dataExtension',
-                    language: 'C++',
-                });
-                cppMatched = true;
-            }
-            const goMatch = goMatched ? null : raw.match(goPattern);
-            if (goMatch) {
-                detectedLanguages.push({
-                    source: 'dataExtension',
-                    language: 'Go',
-                });
-                goMatched = true;
-            }
-            const asMatch = asMatched ? null : raw.match(asPattern);
-            if (asMatch) {
-                detectedLanguages.push({
-                    source: 'dataExtension',
-                    language: 'AssemblyScript',
-                });
-                asMatched = true;
-            }
-            if (rustMatched && cppMatched && goMatched) {
-                break;
-            }
-        }
-
-        let features: string[] = [];
-
-        // language detection via import sources
-        if (imports) {
-            for (let imp of imports.functions) {
-                const source = imp.source.toLowerCase();
-                if (source.includes('rust')) {
-                    detectedLanguages.push({
-                        source: 'import',
-                        language: 'Rust'
-                    });
-                    break;
-                }
-                if (source.includes('go.runtime')
-                    || source.includes('go.syscall')
-                    || source.includes('go.interface')
-                    || source.includes('go.mem')
-                    || source.includes('gojs.')
-                    || source.trim() === 'go') {
-                    detectedLanguages.push({
-                        source: 'import',
-                        language: 'Go'
-                    });
-                    break;
-                }
-            }
-        }
-
-
-        // mutable-globals feature
-        if (imports && imports.globals) {
-            for (let global of imports.globals) {
-                if (global.mutable) {
-                    features.push('mutable-globals');
-                    break;
-                }
-            }
-        }
-
-        // feature detection via opcodes
-        if (opcodes) {
-            features = features.concat(opcodes.features.filter((feature: string) => feature !== 'default'));
-        }
-
-        // multi-value feature
-        if (functions) {
-            for (let func of functions) {
-                if (func.returns && func.returns.includes(',')) {
-                    features.push('multi-value');
-                    break;
-                }
-            }
-        }
-
-        // JS BigInt to Wasm i64 integration
-        if (hasBigIntToI64Integration(exports, imports)) {
-            features.push('bigint-to-i64');
-        }
-
-        // multiple memories feature
-        for (let segment of data) {
-            if (segment.memoryId && segment.memoryId > 0) {
-                features.push('multiple-memories');
-                break;
-            }
-        }
 
 
         const packageName = source.package;
@@ -292,6 +185,7 @@ export function analyze(file: string) {
     writeFileSync('details.json', JSON.stringify({
         packages: packageArray
     }, null, 2));
+     */
 }
 
 function getAverageNumberOfExportedFunctions(packageArray: any[], totalFiles: number): number {
@@ -396,28 +290,6 @@ function getImportSourceMap(packageArray: any[]): Map<string, number> {
 
 function sortMap(map: Map<string, number>): Map<string, number> {
     return new Map([...map.entries()].sort((a, b) => b[1] - a[1]));
-}
-
-function getLanguageAndVersion(language: string): { language: string, version: string } {
-    const languages = ['Rust', 'Go'];
-    if (languages.filter((lang) => lang.toLowerCase() === language.toLowerCase()).length > 0) {
-        return {
-            'language': language,
-            'version': null
-        };
-    }
-    for (let lang of languages) {
-        if (language.toLowerCase().includes(lang.toLowerCase())) {
-            return {
-                'language': lang,
-                'version': language.replace(lang + '.', '')
-            };
-        }
-    }
-    return {
-        'language': language,
-        'version': null
-    };
 }
 
 function hasBigIntToI64Integration(exports: any[], imports: any): boolean {
