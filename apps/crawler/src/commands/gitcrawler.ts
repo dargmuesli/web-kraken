@@ -11,7 +11,7 @@ export async function gitcrawler(token: string, options: OptionValues) {
     });
     console.log('Crawling github repositories for wasm files...');
 
-    let wabtModule = await wabt();
+    const wabtModule = await wabt();
 
     let page = 1;
     let numberOfFiles = options.number ? options.number : 1000;
@@ -27,7 +27,7 @@ export async function gitcrawler(token: string, options: OptionValues) {
         if (searchResult.data.items.length === 0) break;
 
         for (const item of searchResult.data.items) {
-            let {data} = await octokit.rest.repos.getContent({
+            const {data} = await octokit.rest.repos.getContent({
                 mediaType: {
                     format: "raw",
                 },
@@ -35,9 +35,9 @@ export async function gitcrawler(token: string, options: OptionValues) {
                 repo: item.repository.name,
                 path: item.path
             });
-            let name = path.basename(item.path).split('.')[0] + '.wasm';
+            const name = path.basename(item.path).split('.')[0] + '.wasm';
             try {
-                let number = options.magic ? extractWasmFromJs(data, name, item) : convertWat(wabtModule, name, data, item);
+                const number = options.magic ? extractWasmFromJs(data, name, item) : convertWat(wabtModule, name, data, item);
                 numberOfFiles -= number;
             } catch (e) {
                 continue;
@@ -50,9 +50,9 @@ export async function gitcrawler(token: string, options: OptionValues) {
     console.log('Crawling github repositories for wasm files finished!');
 }
 
-function convertWat(wabtModule: any, name: string, data: any, item: any): number {
-    let wasmModule = wabtModule.parseWat(name, data.toString());
-    let buffer = Buffer.from(wasmModule.toBinary({}))
+function convertWat(wabtModule, name: string, data, item): number {
+    const wasmModule = wabtModule.parseWat(name, data.toString());
+    const buffer = Buffer.from(wasmModule.toBinary({}))
     if (duplicateExists(buffer)) return 0;
     name = getFileName(name);
     writeFileSync(name, buffer);
@@ -60,11 +60,11 @@ function convertWat(wabtModule: any, name: string, data: any, item: any): number
     return 1;
 }
 
-function extractWasmFromJs(data: any, name: string, item: any): number {
-    let regex = /AGFzbQ[^"'"'"'`]*/g
+function extractWasmFromJs(data, name: string, item): number {
+    const regex = /AGFzbQ[^"'"'"'`]*/g
     let filesSaved = 0;
     data.toString().match(regex)?.forEach((match: string) => {
-        let result = Buffer.from(match, 'base64');
+        const result = Buffer.from(match, 'base64');
         if (duplicateExists(result)) return;
         name = getFileName(name);
         writeFileSync(name, result);
@@ -76,15 +76,15 @@ function extractWasmFromJs(data: any, name: string, item: any): number {
 
 export function getFileName(name: string): string {
     if (!fs.existsSync(name)) return name;
-    let regex = /[(]\d+[)].wasm/g;
-    let match = name.match(regex);
+    const regex = /[(]\d+[)].wasm/g;
+    const match = name.match(regex);
     if (!match) return getFileName(name.replace('.wasm', '(2).wasm'));
-    let number = parseInt(match[0].replace('(', '').replace(').wasm', ''));
+    const number = parseInt(match[0].replace('(', '').replace(').wasm', ''));
     return getFileName(name.replace(regex, `(${number + 1}).wasm`));
 }
 
 function duplicateExists(result: Buffer): boolean {
-    let files = fs.readdirSync(process.cwd());
+    const files = fs.readdirSync(process.cwd());
     for (const file of files) {
         if (fs.statSync(file).isDirectory()) continue;
         if (path.extname(file) !== '.wasm') continue;
@@ -93,7 +93,7 @@ function duplicateExists(result: Buffer): boolean {
     return false;
 }
 
-function saveSource(item: any, name: string, type: string) {
+function saveSource(item, name: string, type: string) {
     if (!existsSync('./sources')) mkdirSync('./sources');
     const sources = {
         repository: item.repository.html_url,
