@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'fs';
+import { readdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { OptionValues } from 'commander';
 
@@ -59,34 +59,56 @@ export function groupAnalyze(options: OptionValues) {
         }
     });
 
+    sectionMap = sortMap(sectionMap);
+    featureMap = sortMap(featureMap);
+    languageMap = sortMap(languageMap);
+
+    const averageImportedFunctions = Math.round(importedFunctions / totalFiles * 100) / 100;
+    const averageExportedFunctions = Math.round(exportedFunctions / totalFiles * 100) / 100;
+    const averageInternalFunctions = Math.round(internalFunctions / totalFiles * 100) / 100;
+
+    if (options.output) {
+        const output = {
+            files: totalFiles,
+            functions: {
+                imported: averageImportedFunctions,
+                exported: averageExportedFunctions,
+                internal: averageInternalFunctions
+            },
+            opcodes: {
+                filesWithOpcodes,
+                totalFiles
+            },
+            sections: Object.fromEntries(sectionMap),
+            features: Object.fromEntries(featureMap),
+            languages: Object.fromEntries(languageMap)
+        };
+        writeFileSync(options.output, JSON.stringify(output, null, 2));
+        return;
+    }
+
+
     console.log('Number of files: ' + files.length);
     console.log();
 
-
     console.log('------Functions------');
-    console.log('Average number of imported functions: ' +  Math.round(importedFunctions / totalFiles * 100) / 100);
-    console.log('Average number of exported functions: ' + Math.round(exportedFunctions / totalFiles * 100) / 100);
-    console.log('Average number of internal functions: ' + Math.round(internalFunctions / totalFiles * 100) / 100);
+    console.log('Average number of imported functions: ' + averageImportedFunctions);
+    console.log('Average number of exported functions: ' + averageExportedFunctions);
+    console.log('Average number of internal functions: ' + averageInternalFunctions);
     console.log();
-
-
 
     console.log('------Opcodes------');
     console.log('Files with opcodes: ' + filesWithOpcodes + '/' + totalFiles);
     console.log();
 
     console.log('------Sections------');
-    sectionMap = sortMap(sectionMap);
     console.table(sectionMap);
     console.log();
-
     console.log('------Features------');
-    featureMap = sortMap(featureMap);
     console.table(featureMap);
     console.log();
 
     console.log('------Languages------');
-    languageMap = sortMap(languageMap);
     console.log('Detected languages:');
     console.table(languageMap);
     console.log();
