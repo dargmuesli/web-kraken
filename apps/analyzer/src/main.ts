@@ -6,6 +6,7 @@ import { batch } from './commands/batch';
 import { analyze } from './commands/analyze';
 import { wasm2wat } from './commands/wasm2wat';
 import { objdump } from './commands/objdump';
+import { groupAnalyze } from './commands/group-analyze';
 
 
 const program = new Command();
@@ -28,6 +29,11 @@ program
     .command('analyze')
     .description('Analyze wasm files in the directory')
     .action(analyze);
+
+program
+    .command('group-analyze')
+    .description('Analyze wasm files in the directory and group the results')
+    .action(groupAnalyze);
 
 program
     .command('wasm2wat <file>')
