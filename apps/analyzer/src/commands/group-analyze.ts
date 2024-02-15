@@ -6,7 +6,7 @@ export function groupAnalyze(options: OptionValues) {
 
     const jsonInput = options.jsonInput ? JSON.parse(readFileSync(options.jsonInput).toString()) : null;
     const files = readdirSync(path.join(process.cwd(), 'data_extended'))
-        .filter((file) => file.endsWith('_data_extended.json') && (!jsonInput || jsonInput.includes(file)));
+        .filter((file) => file.endsWith('_data_extended.json') && (!jsonInput || jsonInput.includes(file.replace('_data_extended.json', ''))));
 
     const totalFiles = files.length;
 
