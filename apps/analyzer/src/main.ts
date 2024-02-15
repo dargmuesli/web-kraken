@@ -25,18 +25,18 @@ program
     .action(batch);
 
 program
-    .command('analyze [file]')
+    .command('analyze')
     .description('Analyze wasm files in the directory')
     .action(analyze);
 
 program
-    .command('wasm2wat <path>')
+    .command('wasm2wat <file>')
     .option('-o, --output [file]', 'Output to file')
     .description('Convert wasm file to wat file')
     .action(wasm2wat);
 
 program
-    .command('objdump <path>')
+    .command('objdump <file>')
     .option('-o, --output [file]', 'Output to file')
     .description('Objdump wrapper command')
     .action(objdump);
