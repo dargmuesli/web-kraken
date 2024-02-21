@@ -1,5 +1,4 @@
-import {getCommandResult} from "../util/util";
-
+import { getCommandResult } from '../util/util';
 export async function getTypeTable(path: string): Promise<string[]> {
     const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Type', './' + path]);
     const types: string[] = [];

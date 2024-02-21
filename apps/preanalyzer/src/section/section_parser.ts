@@ -1,10 +1,11 @@
-import {getCommandResult} from "../util/util";
+
 import {ProducersSection, Section} from "../entity/section";
+import { getCommandResult } from '../util/util';
 
 export async function getCustomSectionList(path: string) {
     const result = await getCommandResult('wasm-objdump', ['-h', './' + path]);
     const sections: Section[] = [];
-    for (let string of result
+    for (const string of result
         .split(/\n/)
         .filter((line) => line.trim().startsWith('Custom'))) {
         const name = string.substring(string.indexOf('"') + 1, string.lastIndexOf('"'));
