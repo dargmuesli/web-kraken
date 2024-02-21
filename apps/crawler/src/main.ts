@@ -11,7 +11,7 @@ program
     .command('npm <db>')
     .description('Crawl npm packages for wasm files')
     .option('-b, --bookmark <bookmark>', 'Bookmark to start crawling from')
-    .option('-p, --path <path>', 'Path to save the crawled files')
+    .option('-p, --path <file>', 'Path to save the crawled files')
     .action(npm);
 
 program
