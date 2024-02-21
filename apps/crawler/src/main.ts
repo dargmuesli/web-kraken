@@ -4,6 +4,7 @@ import {Command} from "commander";
 import {npm} from "./commands/npm";
 import {gitcrawler} from "./commands/gitcrawler";
 import { groupsources } from './commands/groupsources';
+import { npmdata } from './commands/npmdata';
 
 const program = new Command();
 
@@ -26,5 +27,10 @@ program
     .command('groupsources')
     .description('Group source files')
     .action(groupsources)
+
+program
+    .command('npmdata')
+    .description('Get data from npm packages')
+    .action(npmdata)
 
 program.parse(process.argv);
