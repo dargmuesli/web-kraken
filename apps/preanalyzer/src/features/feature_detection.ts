@@ -1,13 +1,13 @@
 
-export function feature_detection(data): string[] {
-    let features: string[] = data.features
+export function feature_detection(details): string[] {
+    let features: string[] = details.features
 
     // feature detection via opcodes
-    const differentFeatures = data.opcodes.map((opcode: any) => opcode.feature).filter((value: any, index: any, self: any) => self.indexOf(value) === index);
+    const differentFeatures = details.opcodes.map((opcode: any) => opcode.feature).filter((value: any, index: any, self: any) => self.indexOf(value) === index);
     features = features.concat(differentFeatures.filter((feature: string) => feature !== 'default'));
 
     // multi-value feature
-    for (const func of data.functions) {
+    for (const func of details.functions) {
         if (func.returns && func.returns.includes(',')) {
             features.push('multi-value');
             break;
@@ -15,7 +15,7 @@ export function feature_detection(data): string[] {
     }
 
     // JS BigInt to Wasm i64 integration
-    for (const func of data.functions) {
+    for (const func of details.functions) {
         if (func.type === 'INTERNAL') continue;
 
         if (func.returns.includes('i64') || func.params.includes('i64')) {
@@ -25,7 +25,7 @@ export function feature_detection(data): string[] {
     }
 
     // multiple memories feature
-    for (let segment of data.dataSegments) {
+    for (let segment of details.dataSegments) {
         if (segment.memoryId && segment.memoryId > 0) {
             features.push('multiple-memories');
             break;

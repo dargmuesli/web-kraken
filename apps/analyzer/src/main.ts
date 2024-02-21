@@ -6,7 +6,6 @@ import { batch } from './commands/batch';
 import { analyze } from './commands/analyze';
 import { wasm2wat } from './commands/wasm2wat';
 import { objdump } from './commands/objdump';
-import { groupAnalyze } from './commands/group-analyze';
 import { keywordfiles } from './commands/keywordfiles';
 
 
@@ -28,15 +27,10 @@ program
 
 program
     .command('analyze')
-    .description('Analyze wasm files in the directory')
-    .action(analyze);
-
-program
-    .command('group-analyze')
     .description('Analyze wasm files in the directory and group the results')
     .option('-j, --jsonInput <input>', 'Specify the wasm files to analyze in json format')
     .option('-o, --output [file]', 'Output info to file json file')
-    .action(groupAnalyze);
+    .action(analyze);
 
 program
     .command('wasm2wat <file>')

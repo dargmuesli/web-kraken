@@ -5,6 +5,8 @@ import { getDataSections } from '../data/data_parser';
 import { getFunctionList, hasMutableGlobals } from '../function/function_parser';
 import { getOpcodeList } from '../opcode/opcode_parser';
 import { getCustomSectionList } from '../section/section_parser';
+import { language_detection } from '../language/language_detection';
+import { feature_detection } from '../features/feature_detection';
 
 export async function batch(options: OptionValues) {
     console.log('Batch analyzing wasm files in the directory...');
@@ -26,7 +28,7 @@ export async function batch(options: OptionValues) {
         const functions = await getFunctionList(file);
         const opcodes = await getOpcodeList(file);
         const sections = await getCustomSectionList(file);
-        const features = await hasMutableGlobals(file) ? ['mutable-globals'] : [];
+        let features = await hasMutableGlobals(file) ? ['mutable-globals'] : [];
 
         const details = {
             dataSegments,
@@ -35,6 +37,13 @@ export async function batch(options: OptionValues) {
             sections,
             features
         };
+
+        const languages = language_detection(details);
+        features = feature_detection(details);
+
+        details['languages'] = languages;
+        details['features'] = features;
+
         fs.writeFileSync( './data/' + file.replace(/\.[^/.]+$/, "") + '_data.json', JSON.stringify(details, null, 2));
     }
 }
