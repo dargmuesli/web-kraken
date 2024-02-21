@@ -158,7 +158,8 @@ function savePackage(npmPackage, fileNames: string[], pathString: string, tarBal
         files: fileNames,
         description: npmPackage.description,
         readme: npmPackage.readme,
-        keywords: npmPackage.keywords
+        keywords: npmPackage.keywords,
+        repository: npmPackage.repository
     };
 
     if (!existsSync(path.join(pathString, 'packages'))) mkdirSync(path.join(pathString, 'packages'));

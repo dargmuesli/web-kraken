@@ -3,6 +3,7 @@
 import {Command} from "commander";
 import {npm} from "./commands/npm";
 import {gitcrawler} from "./commands/gitcrawler";
+import { groupsources } from './commands/groupsources';
 
 const program = new Command();
 
@@ -20,5 +21,10 @@ program
     .option('-a, --all', 'Crawl for all possible files')
     .description('Crawl github repositories for wat files')
     .action(gitcrawler);
+
+program
+    .command('groupsources')
+    .description('Group source files')
+    .action(groupsources)
 
 program.parse(process.argv);
