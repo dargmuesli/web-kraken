@@ -49,8 +49,9 @@ function addLanguagesFromSource(source: string, packageLanguages: any[], sourceT
 
 async function checkGitRepo(octokit: Octokit, sourceJson: any, packageLanguages: any[]) {
     //example: git+https://github.com/nakayama0731/my-hello-wasm.git
-    const urlData = sourceJson.repository.url.split('github.com/')[1];
+    let urlData = sourceJson.repository.url.split('github.com/')[1];
     if (!urlData) return;
+    if (urlData.includes('repos/')) urlData = urlData.split('repos/')[1];
     const owner = urlData.split('/')[0];
     const repo = urlData.split('/')[1].replace('.git', '');
     try {
