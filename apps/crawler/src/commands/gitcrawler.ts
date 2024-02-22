@@ -16,6 +16,9 @@ export async function gitcrawler(token: string, options: OptionValues) {
     let page = 1;
     let numberOfFiles = options.number ? options.number : 1000;
 
+    // packageName -> packageDetails
+    const packageMap = new Map<string, any>();
+
     while (numberOfFiles > 0 || options.all) {
         const searchResult = await octokit.rest.search.code({
             q: options.magic ? 'AGFzbQ language:JavaScript ' : 'language:WebAssembly',
@@ -27,6 +30,18 @@ export async function gitcrawler(token: string, options: OptionValues) {
         if (searchResult.data.items.length === 0) break;
 
         for (const item of searchResult.data.items) {
+            const packageName = item.repository.full_name.replace('/', '_');
+
+            const packageDetails = packageMap.has(packageName) ? packageMap.get(packageName) : {
+                package: packageName,
+                type: options.magic ? 'magic' : 'wat',
+                repository: {
+                    type: 'git',
+                    url: item.repository.url
+                },
+                files: []
+            }
+
             const {data} = await octokit.rest.repos.getContent({
                 mediaType: {
                     format: "raw",
@@ -37,40 +52,42 @@ export async function gitcrawler(token: string, options: OptionValues) {
             });
             const name = path.basename(item.path).split('.')[0] + '.wasm';
             try {
-                const number = options.magic ? extractWasmFromJs(data, name, item) : convertWat(wabtModule, name, data, item);
+                const number = options.magic ? extractWasmFromJs(data, name, item, packageMap, packageDetails) : convertWat(wabtModule, name, data, item, packageMap, packageDetails);
                 numberOfFiles -= number;
             } catch (e) {
                 continue;
             }
-            //saveSource(item, name, options.magic ? 'magic' : 'wat');
             if (numberOfFiles <= 0 && !options.all) break;
         }
         if (numberOfFiles <= 0 && !options.all) break;
     }
+    savePackages(packageMap);
     console.log('Crawling github repositories for wasm files finished!');
 }
 
-function convertWat(wabtModule, name: string, data, item): number {
+function convertWat(wabtModule, name: string, data, item, packageMap, packageDetails): number {
     const wasmModule = wabtModule.parseWat(name, data.toString());
     const buffer = Buffer.from(wasmModule.toBinary({}))
     if (duplicateExists(buffer)) return 0;
-    name = getFileName(name);
+    name = getFileName(packageDetails.package + '_' + name)
     writeFileSync(name, buffer);
-    saveSource(item, name, 'wat');
+    packageDetails.files.push(name.replace('.wasm', ''));
+    packageMap.set(packageDetails.package, packageDetails);
     return 1;
 }
 
-function extractWasmFromJs(data, name: string, item): number {
+function extractWasmFromJs(data, name: string, item, packageMap, packageDetails): number {
     const regex = /AGFzbQ[^"'"'"'`]*/g
     let filesSaved = 0;
     data.toString().match(regex)?.forEach((match: string) => {
         const result = Buffer.from(match, 'base64');
         if (duplicateExists(result)) return;
-        name = getFileName(name);
+        name = getFileName(packageDetails.package + '_' + name);
         writeFileSync(name, result);
-        saveSource(item, name, 'magic');
+        packageDetails.files.push(name.replace('.wasm', ''));
         filesSaved++;
     });
+    if (filesSaved > 0) packageMap.set(packageDetails.package, packageDetails);
     return filesSaved;
 }
 
@@ -93,14 +110,12 @@ function duplicateExists(result: Buffer): boolean {
     return false;
 }
 
-function saveSource(item, name: string, type: string) {
-    if (!existsSync('./sources')) mkdirSync('./sources');
-    const sources = {
-        repository: item.repository.html_url,
-        path: item.path,
-        type: type
-    };
-    writeFileSync(path.join('sources', name.replace('.wasm', '_sources.json')), JSON.stringify(sources, null, 2))
+function savePackages(packageMap: Map<string, any>) {
+    if (!existsSync('./packages')) mkdirSync('./packages');
+    packageMap.forEach((value, key) => {
+        writeFileSync(path.join('packages', key + '_package.json'), JSON.stringify(value, null, 2));
+    });
 }
+
 
 

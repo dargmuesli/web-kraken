@@ -3,6 +3,8 @@
 import {Command} from "commander";
 import {npm} from "./commands/npm";
 import {gitcrawler} from "./commands/gitcrawler";
+import { groupsources } from './commands/groupsources';
+import { npmdata } from './commands/npmdata';
 
 const program = new Command();
 
@@ -10,7 +12,7 @@ program
     .command('npm <db>')
     .description('Crawl npm packages for wasm files')
     .option('-b, --bookmark <bookmark>', 'Bookmark to start crawling from')
-    .option('-p, --path <path>', 'Path to save the crawled files')
+    .option('-p, --path <file>', 'Path to save the crawled files')
     .action(npm);
 
 program
@@ -20,5 +22,15 @@ program
     .option('-a, --all', 'Crawl for all possible files')
     .description('Crawl github repositories for wat files')
     .action(gitcrawler);
+
+program
+    .command('groupsources')
+    .description('Group source files')
+    .action(groupsources)
+
+program
+    .command('npmdata')
+    .description('Get data from npm packages')
+    .action(npmdata)
 
 program.parse(process.argv);

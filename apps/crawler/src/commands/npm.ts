@@ -69,13 +69,13 @@ export async function npm(db: string, options: OptionValues) {
                 continue;
             }
 
-            const fileNames = await extractWasm(tarLink, npmPackage._id, options.path);
+            const fileNames = await extractWasm(tarLink, npmPackage._id, options.file);
             if (fileNames.length === 0) {
                 progressBar.update(elements);
                 continue;
             }
 
-            savePackage(npmPackage, fileNames, options.path, tarLink);
+            savePackage(npmPackage, fileNames, options.file, tarLink);
             progressBar.update(elements);
         }
         bookmark = findResponse.bookmark;
@@ -158,7 +158,8 @@ function savePackage(npmPackage, fileNames: string[], pathString: string, tarBal
         files: fileNames,
         description: npmPackage.description,
         readme: npmPackage.readme,
-        keywords: npmPackage.keywords
+        keywords: npmPackage.keywords,
+        repository: npmPackage.repository
     };
 
     if (!existsSync(path.join(pathString, 'packages'))) mkdirSync(path.join(pathString, 'packages'));
