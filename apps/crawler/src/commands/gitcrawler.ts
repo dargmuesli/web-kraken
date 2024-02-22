@@ -87,7 +87,7 @@ function extractWasmFromJs(data, name: string, item, packageMap, packageDetails)
         packageDetails.files.push(name.replace('.wasm', ''));
         filesSaved++;
     });
-    packageMap.set(packageDetails.package, packageDetails);
+    if (filesSaved > 0) packageMap.set(packageDetails.package, packageDetails);
     return filesSaved;
 }
 
