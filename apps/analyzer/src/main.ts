@@ -7,6 +7,7 @@ import { analyze } from './commands/analyze';
 import { wasm2wat } from './commands/wasm2wat';
 import { objdump } from './commands/objdump';
 import { keywordfiles } from './commands/keywordfiles';
+import { compare } from './commands/compare';
 
 
 const program = new Command();
@@ -50,5 +51,11 @@ program
     .description('Saves the files that contain the keywords in a json file')
     .argument('<keywords...>')
     .action(keywordfiles);
+
+program
+    .command('compare <file1> <file2>')
+    .description('Compare the data of two analysis files')
+    .option('-sd, --sortDifference', 'Sort by difference')
+    .action(compare);
 
 program.parse(process.argv);
