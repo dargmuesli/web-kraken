@@ -4,8 +4,8 @@ import { OptionValues } from 'commander';
 
 export function analyze(options: OptionValues) {
     const jsonInput = options.jsonInput ? JSON.parse(readFileSync(options.jsonInput).toString()) : null;
-    const files = readdirSync(path.join(process.cwd(), 'data_extended'))
-        .filter((file) => file.endsWith('_data_extended.json') && (!jsonInput || jsonInput.includes(file.replace('_data_extended.json', ''))));
+    const files = readdirSync(path.join(process.cwd(), 'data'))
+        .filter((file) => file.endsWith('_data.json') && (!jsonInput || jsonInput.includes(file.replace('_data.json', ''))));
 
     const totalFiles = files.length;
 
@@ -22,8 +22,8 @@ export function analyze(options: OptionValues) {
     let opcodeMap = new Map<string, number>();
 
     files.forEach((file) => {
-        const data = JSON.parse(readFileSync(path.join('data_extended', file)).toString());
-        fileSizes += fs.statSync(file.replace('_data_extended.json', '.wasm')).size;
+        const data = JSON.parse(readFileSync(path.join('data', file)).toString());
+        fileSizes += fs.statSync(file.replace('_data.json', '.wasm')).size;
 
         const imports = data.functions.filter((func: any) => func.type === 'IMPORT');
 
