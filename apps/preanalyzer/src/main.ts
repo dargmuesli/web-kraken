@@ -7,6 +7,7 @@ import { sectionls } from './commands/sectionls';
 import { opcodels } from './commands/opcodels';
 import { funcls } from './commands/funcls';
 import { batch } from './commands/batch';
+import { packageanalyze } from './commands/packageanalyze';
 
 const program = new Command();
 
@@ -47,5 +48,10 @@ program
     .option('-j, --jsonInput <input>', 'Specify the wasm files to analyze in json format')
     .description('Batch analyze wasm files in the directory')
     .action(batch);
+
+program
+    .command('packageanalyze <token>')
+    .description('Crawl npm packages for wasm files')
+    .action(packageanalyze);
 
 program.parse(process.argv);
