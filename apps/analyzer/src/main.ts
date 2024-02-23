@@ -55,7 +55,7 @@ program
 program
     .command('compare <file1> <file2>')
     .description('Compare the data of two analysis files')
-    .option('-sd, --sortDifference', 'Sort by difference')
+    .option('-t, --thresholds <thresholds...>', 'Thresholds for each opcode comparison')
     .action(compare);
 
 program.parse(process.argv);

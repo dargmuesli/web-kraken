@@ -1,34 +1,55 @@
 import { readFileSync } from 'fs';
+import { OptionValues } from 'commander';
 
-export function compare(file1: string, file2: string, options: any) {
+export function compare(file1: string, file2: string, options: OptionValues) {
     const json1 = JSON.parse(readFileSync(file1).toString());
     const json2 = JSON.parse(readFileSync(file2).toString());
 
     // opcodes
-    const totalOpcodes = Object.keys(json1.opcodes.map).concat(Object.keys(json2.opcodes.map)).filter((value, index, self) => self.indexOf(value) === index);
-    const opcodes = totalOpcodes.map((key) => {
-        const percentage1 = json1.opcodes.map[key] ? json1.opcodes.map[key] : 0;
-        const percentage2 = json2.opcodes.map[key] ? json2.opcodes.map[key] : 0;
-
-        return {
-            opcode: key,
-            [file1.replace('.json', '')]: percentage1,
-            [file2.replace('.json', '')]: percentage2,
-            difference: Math.round(Math.abs(percentage1 - percentage2) * 100000) / 100000
-        };
-    });
-
-    if (options.sortDifference) {
-        opcodes.sort((a, b) => {
-            if (a.difference < b.difference) {
-                return 1;
-            }
-            if (a.difference > b.difference) {
-                return -1;
-            }
-            return 0;
-        });
+    console.log('------- Opcodes -------');
+    const map1 = new Map<string, number>();
+    const map2 = new Map<string, number>();
+    for (const opcode of Object.keys(json1.opcodes.map)) {
+        map1.set(opcode, json1.opcodes.map[opcode]);
     }
+    for (const opcode of Object.keys(json2.opcodes.map)) {
+        map2.set(opcode, json2.opcodes.map[opcode]);
+    }
+
+    const opcodes = compareMaps(map1, map2, file1, file2, options.thresholds[0] ? parseFloat(options.thresholds[0]) : 0);
+    console.log('Full opcodes:')
+    console.table(opcodes);
+    console.log();
+
+    const typeMap1 = new Map<string, number>();
+    const typeMap2 = new Map<string, number>();
+    const operationMap1 = new Map<string, number>();
+    const operationMap2 = new Map<string, number>();
+
+    splitOpcodes(json1, typeMap1, operationMap1);
+    splitOpcodes(json2, typeMap2, operationMap2);
+
+    console.log('Only types:')
+    const types = compareMaps(typeMap1, typeMap2, file1, file2, options.thresholds[1] ? parseFloat(options.thresholds[1]) : 0);
+    console.table(types);
+    console.log();
+
+    console.log('Only operations:')
+    const operations = compareMaps(operationMap1, operationMap2, file1, file2, options.thresholds[2] ? parseFloat(options.thresholds[2]) : 0);
+    console.table(operations);
+    console.log();
+
+    console.log('Signed/Unsigned:')
+    const signMap1 = new Map<string, number>();
+    const signMap2 = new Map<string, number>();
+    splitSigned(json1, signMap1);
+    splitSigned(json2, signMap2);
+    const signed = compareMaps(signMap1, signMap2, file1, file2);
+    console.table(signed);
+    console.log();
+
+
+
 
     // languages
     const totalLanguages =  Object.keys(json1.languages).concat(Object.keys(json2.languages)).filter((value, index, self) => self.indexOf(value) === index);
@@ -60,9 +81,7 @@ export function compare(file1: string, file2: string, options: any) {
         };
     });
 
-    console.log('------- Opcodes -------');
-    console.table(opcodes);
-    console.log();
+
 
     console.log('------- Languages -------');
     console.table(languages);
@@ -70,5 +89,81 @@ export function compare(file1: string, file2: string, options: any) {
 
     console.log('------- Features -------');
     console.table(features);
-
 }
+
+function splitOpcodes(json: any, typeMap: Map<string, number>, operationMap: Map<string, number>) {
+    for (const opcode of Object.keys(json.opcodes.map)) {
+        if (!opcode.includes('.')) continue;
+
+        /*
+            example: i32.atomic.rmw.xchg
+            type: i32
+            operation: atomic.rmw.xchg
+         */
+        const type = opcode.split('.')[0];
+        const operation = opcode.split('.').slice(1).join('.');
+
+        typeMap.set(type, (typeMap.get(type) || 0) + json.opcodes.map[opcode]);
+        operationMap.set(operation, (operationMap.get(operation) || 0) + json.opcodes.map[opcode]);
+    }
+
+    // round values to 5 decimal places
+    for (const key of typeMap.keys()) {
+        typeMap.set(key, Math.round(typeMap.get(key) * 100000) / 100000);
+    }
+
+    for (const key of operationMap.keys()) {
+        operationMap.set(key, Math.round(operationMap.get(key) * 100000) / 100000);
+    }
+}
+
+function splitSigned(json: any, signMap: Map<string, number>) {
+    for (const opcode of Object.keys(json.opcodes.map)) {
+        if (!opcode.endsWith('_u') && !opcode.endsWith('_s')) continue;
+
+        const sign = opcode.endsWith('_u') ? 'unsigned' : 'signed';
+        signMap.set(sign, (signMap.get(sign) || 0) + json.opcodes.map[opcode]);
+    }
+
+    // round values to 5 decimal places
+    for (const key of signMap.keys()) {
+        signMap.set(key, Math.round(signMap.get(key) * 100000) / 100000);
+    }
+}
+
+function compareMaps(map1: Map<string, number>, map2: Map<string, number>, file1: string, file2: string, threshold: number = 0) {
+    const totalOpcodes = Array.from(map1.keys()).concat(Array.from(map2.keys())).filter((value, index, self) => self.indexOf(value) === index);
+    const opcodes = totalOpcodes
+        .filter((value) => map1.get(value) > threshold || map2.get(value) > threshold)
+        .map((key) => {
+        const percentage1 = map1.has(key) ? map1.get(key) : 0;
+        const percentage2 = map2.has(key) ? map2.get(key) : 0;
+
+        //const difference = Math.round(Math.abs(percentage1 - percentage2) * 100000) / 100000;
+        let change = percentage1 > percentage2 ? percentage1 / percentage2 : percentage2 / percentage1;
+        if (percentage1 === 0 || percentage2 === 0) change = 0;
+
+        // round change to 5 decimal places
+        change = Math.round(change * 100000) / 100000;
+
+        return {
+            opcode: key,
+            [file1.replace('.json', '')]: percentage1,
+            [file2.replace('.json', '')]: percentage2,
+            change: change
+        };
+    });
+
+    opcodes.sort((a, b) => {
+        if (a.change < b.change) {
+            return 1;
+        }
+        if (a.change > b.change) {
+            return -1;
+        }
+        return 0;
+    });
+
+    return opcodes;
+}
+
