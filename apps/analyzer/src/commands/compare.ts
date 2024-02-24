@@ -139,8 +139,8 @@ function compareMaps(map1: Map<string, number>, map2: Map<string, number>, file1
         const percentage1 = map1.has(key) ? map1.get(key) : 0;
         const percentage2 = map2.has(key) ? map2.get(key) : 0;
 
-        //const difference = Math.round(Math.abs(percentage1 - percentage2) * 100000) / 100000;
-        let change = percentage1 > percentage2 ? percentage1 / percentage2 : percentage2 / percentage1;
+
+        let change = Math.log(percentage1 / percentage2) / Math.log(2);
         if (percentage1 === 0 || percentage2 === 0) change = 0;
 
         // round change to 5 decimal places
@@ -150,15 +150,15 @@ function compareMaps(map1: Map<string, number>, map2: Map<string, number>, file1
             opcode: key,
             [file1.replace('.json', '')]: percentage1,
             [file2.replace('.json', '')]: percentage2,
-            change: change
+            log_diff: change
         };
     });
 
     opcodes.sort((a, b) => {
-        if (a.change < b.change) {
+        if (Math.abs(a.log_diff) < Math.abs(b.log_diff)) {
             return 1;
         }
-        if (a.change > b.change) {
+        if (Math.abs(a.log_diff) > Math.abs(b.log_diff)) {
             return -1;
         }
         return 0;
