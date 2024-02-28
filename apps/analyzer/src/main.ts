@@ -3,7 +3,6 @@
 import { Command } from 'commander';
 import figlet from 'figlet';
 import { analyze } from './commands/analyze';
-import { wasm2wat } from './commands/wasm2wat';
 import { keywordfiles } from './commands/keywordfiles';
 import { compare } from './commands/compare';
 
@@ -23,11 +22,6 @@ program
     .option('-o, --output [file]', 'Output info to file json file')
     .action(analyze);
 
-program
-    .command('wasm2wat <file>')
-    .option('-o, --output [file]', 'Output to file')
-    .description('Convert wasm file to wat file')
-    .action(wasm2wat);
 
 program
     .command('keywordfiles <output>')

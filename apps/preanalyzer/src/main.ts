@@ -9,6 +9,7 @@ import { funcls } from './commands/funcls';
 import { batch } from './commands/batch';
 import { packageanalyze } from './commands/packageanalyze';
 import { objdump } from './commands/objdump';
+import { wasm2wat } from './commands/wasm2wat';
 
 const program = new Command();
 
@@ -60,5 +61,11 @@ program
     .option('-o, --output [file]', 'Output to file')
     .description('Objdump wrapper command')
     .action(objdump);
+
+program
+    .command('wasm2wat <file>')
+    .option('-o, --output [file]', 'Output to file')
+    .description('Convert wasm file to wat file')
+    .action(wasm2wat);
 
 program.parse(process.argv);
