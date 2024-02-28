@@ -74,14 +74,15 @@ export async function getImportFunctionList(file: string, types: string[]): Prom
 }
 
 export async function hasMutableGlobals(file: string): Promise<boolean> {
-    const result = await getCommandResult('wasm-objdump', ['-x', '-j', 'Global', './' + file]);
-    const globalIndex = result.indexOf('- global');
+    const imports = await getCommandResult('wasm-objdump', ['-x', '-j', 'Import', './' + file]);
+    const globalIndex = imports.indexOf('- global');
     if (globalIndex === -1) return false;
-    const functionString = result.substring(globalIndex);
-    const lines = functionString.split(/\n/);
-
+    const globalString = imports.substring(globalIndex);
+    const lines = globalString.split(/\n/);
     for (const line of lines) {
-        if (line.indexOf('mutable=1') !== -1) return true;
+        if (line.indexOf('mutable=1') !== -1) {
+            return true;
+        }
     }
     return false;
 }
