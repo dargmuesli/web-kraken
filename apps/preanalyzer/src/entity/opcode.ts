@@ -1,4 +1,5 @@
 
+// noinspection JSUnusedGlobalSymbols
 export class Opcode {
     constructor(
         private readonly name: string,

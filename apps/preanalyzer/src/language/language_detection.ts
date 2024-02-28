@@ -1,3 +1,4 @@
+import { Section } from '../entity/section';
 
 export function language_detection(data) {
     const detectedLanguages = [];
@@ -15,13 +16,13 @@ export function language_detection(data) {
     }
 
     // detect go language via buildid or version section
-    const goBuildIdSection = sections.filter((section: any) => section.name.includes('go') && section.name.includes('buildid'));
-    const goVersionSection = sections.filter((section: any) => section.name.includes('go') && section.name.includes('version'));
+    const goBuildIdSection = sections.filter((section: Section) => section.getName().includes('go') && section.getName().includes('buildid'));
+    const goVersionSection = sections.filter((section: Section) => section.getName().includes('go') && section.getName().includes('version'));
     if (goBuildIdSection.length > 0) {
         detectedLanguages.push({
             source: 'go.buildid',
             language: 'Go',
-            version: goVersionSection.length > 0 ? goVersionSection[0].raw.replace('.go.version', '') : null
+            version: goVersionSection.length > 0 ? goVersionSection[0].getRaw().replace('.go.version', '') : null
         });
     } else if (goVersionSection.length > 0) {
         detectedLanguages.push({
@@ -42,7 +43,7 @@ export function language_detection(data) {
 
     const charLimit = 100000;
     for (let segment of data.dataSegments) {
-        const raw = segment.raw.substring(0, charLimit);
+        const raw = segment.getRaw().substring(0, charLimit);
         const rustMatch = rustMatched ? null : raw.match(rustPattern);
         if (rustMatch) {
             detectedLanguages.push({

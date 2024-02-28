@@ -7,7 +7,7 @@ PouchDB.plugin(PouchDBFind);
 import https from "https";
 import http from "http";
 import stream from "stream";
-import fs, {existsSync, mkdirSync, writeFileSync} from "fs";
+import fs, {existsSync, mkdirSync} from "fs";
 import gunzip from "gunzip-maybe";
 import * as tar from "tar-stream";
 import {OptionValues} from "commander";
