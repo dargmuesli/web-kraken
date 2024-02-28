@@ -66,10 +66,30 @@ export async function gitcrawler(token: string, options: OptionValues) {
 }
 
 function convertWat(wabtModule, name: string, data, item, packageMap, packageDetails): number {
-    const wasmModule = wabtModule.parseWat(name, data.toString());
-    const buffer = Buffer.from(wasmModule.toBinary({}))
+    // enable all features
+    const features = {
+        exceptions: true,
+        mutable_globals: true,
+        sat_float_to_int: true,
+        sign_extension: true,
+        simd: true,
+        threads: true,
+        function_references: true,
+        multi_value: true,
+        tail_call: true,
+        bulk_memory: true,
+        reference_types: true,
+        annotations: true,
+        code_metadata: true,
+        gc: true,
+        memory64: true,
+        extended_const: true,
+        relaxed_simd: true
+    }
+    const wasmModule = wabtModule.parseWat(name, data.toString(), features);
+    const buffer = Buffer.from(wasmModule.toBinary({}).buffer);
     if (duplicateExists(buffer)) return 0;
-    name = getFileName(packageDetails.package + '_' + name)
+    name = getFileName(packageDetails.package + '_' + name);
     writeFileSync(name, buffer);
     packageDetails.files.push(name.replace('.wasm', ''));
     packageMap.set(packageDetails.package, packageDetails);
