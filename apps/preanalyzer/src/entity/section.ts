@@ -3,6 +3,15 @@ export class Section {
         private readonly name: string,
         private readonly raw: string
     ) {
+
+    }
+
+    getName(): string {
+        return this.name;
+    }
+
+    getRaw(): string {
+        return this.raw;
     }
 }
 
