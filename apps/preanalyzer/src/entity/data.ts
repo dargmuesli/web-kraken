@@ -1,4 +1,5 @@
 
+// noinspection JSUnusedGlobalSymbols
 export class Data {
     constructor(
         private readonly memoryId: number,

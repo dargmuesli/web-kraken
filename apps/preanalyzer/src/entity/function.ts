@@ -1,5 +1,6 @@
 import { functionType } from './function_type';
 
+// noinspection JSUnusedGlobalSymbols
 export class Function {
     constructor(
         private readonly name: string,
