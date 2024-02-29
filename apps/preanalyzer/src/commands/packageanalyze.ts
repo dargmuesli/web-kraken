@@ -9,8 +9,10 @@ export async function packageanalyze(token: string) {
 
     const packages= readdirSync('./packages').filter((file) => file.endsWith('_package.json'));
 
-    for (const pkg of packages) {
+    console.log('Analyzing ' + packages.length + ' packages...')
 
+    for (const pkg of packages) {
+        console.log('Analyzing ' + pkg + '...');
         const sourceJson = JSON.parse(readFileSync('./packages/' + pkg).toString());
 
         const packageLanguages = [];
@@ -24,6 +26,8 @@ export async function packageanalyze(token: string) {
 
         fs.writeFileSync('./packages/' + pkg, JSON.stringify(sourceJson, null, 2));
     }
+
+    console.log('Done');
 }
 
 
