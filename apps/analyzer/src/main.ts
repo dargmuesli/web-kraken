@@ -5,6 +5,7 @@ import figlet from 'figlet';
 import { analyze } from './commands/analyze';
 import { keywordfiles } from './commands/keywordfiles';
 import { compare } from './commands/compare';
+import { language } from './commands/language';
 
 
 const program = new Command();
@@ -35,5 +36,10 @@ program
     .description('Compare the data of two analysis files')
     .option('-t, --thresholds <thresholds...>', 'Thresholds for each opcode comparison')
     .action(compare);
+
+program
+    .command('language <file>')
+    .description('Prints the language of the wasm file')
+    .action(language);
 
 program.parse(process.argv);
