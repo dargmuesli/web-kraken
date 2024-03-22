@@ -1,4 +1,4 @@
-import {CssLinks, HtmlLinks, Link} from "./links.interface";
+import {CssLinks, HtmlLinks, Link, LinkType} from "./links.interface";
 import * as htmlparser2 from "htmlparser2";
 
 export class HtmlCallback implements Partial<htmlparser2.Handler> {
@@ -119,35 +119,40 @@ export function css(css: string, url?: string): CssLinks {
 
   for (const match of css.matchAll(urlRegex)) {
     const link = match[1] || match[2] || match[3];
-
-    if (link.startsWith('data:')) {
-      const mimeType = link.substring('data:'.length, link.indexOf(';'));
-      if (mimeType.startsWith('font/')) {
-        links.fonts.push(new Link('font', link));
-      } else if (mimeType.startsWith('image/')) {
-        links.images.push(new Link('image', link));
-      } else if (mimeType === 'text/css') {
-        links.styles.push(new Link('style', link));
-      }
-    } else {
-      // convert to URL to strip query string, hash, etc.
-      let extension: string;
-      try {
-        const url = new URL(link);
-        extension = url.pathname.substring(url.pathname.lastIndexOf('.'));
-      } catch (e) {
-        extension = link.substring(link.lastIndexOf('.'));
-      }
-      if (FONT_EXTENSIONS.has(extension)) {
-        links.fonts.push(new Link('font', link));
-      } else if (IMAGE_EXTENSIONS.has(extension)) {
-        links.images.push(new Link('image', link));
-      } else if (extension === '.css') {
-        // e.g. `@import url('foo/bar/baz.css');`
-        links.styles.push(new Link('style', link));
-      }
+    const type = classifyUrl(link, url);
+    if (type) {
+      links[`${type}s`].push(new Link(type, link));
     }
   }
 
   return links;
+}
+
+function classifyUrl(link: string, baseUrl?: string): LinkType | undefined {
+  if (link.startsWith('data:')) {
+    const mimeType = link.substring('data:'.length, link.indexOf(';'));
+    if (mimeType.startsWith('font/')) {
+      return 'font';
+    } else if (mimeType.startsWith('image/')) {
+      return 'image';
+    } else if (mimeType === 'text/css') {
+      return 'style';
+    }
+  } else {
+    // convert to URL to strip query string, hash, etc.
+    let extension: string;
+    try {
+      const url = new URL(link, baseUrl);
+      extension = url.pathname.substring(url.pathname.lastIndexOf('.'));
+    } catch (e) {
+      extension = link.substring(link.lastIndexOf('.'));
+    }
+    if (FONT_EXTENSIONS.has(extension)) {
+      return 'font';
+    } else if (IMAGE_EXTENSIONS.has(extension)) {
+      return 'image';
+    } else if (extension === '.css') {
+      return 'style';
+    }
+  }
 }

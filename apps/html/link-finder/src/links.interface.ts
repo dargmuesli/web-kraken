@@ -1,6 +1,8 @@
+export type LinkType = 'script' | 'stylesheet' | 'preload' | 'style' | 'font' | 'image' | 'anchor';
+
 export class Link {
   constructor(
-    public type: 'script' | 'stylesheet' | 'preload' | 'style' | 'font' | 'image' | 'anchor',
+    public type: LinkType,
     public href: string,
     public integrity?: string,
   ) {
