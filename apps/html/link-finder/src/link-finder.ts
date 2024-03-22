@@ -31,7 +31,8 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
             break;
           case "preload":
             if (attrs.href) {
-              this.links.preload.push(new Link('preload', attrs.href, attrs.integrity));
+              const type = classifyUrl(attrs.href);
+              this.links.preload.push(new Link(type, attrs.href, attrs.integrity));
             }
             break;
         }
