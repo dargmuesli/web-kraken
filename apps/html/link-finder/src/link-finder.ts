@@ -14,26 +14,26 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
     switch (name) {
       case "a":
         if (attrs.href) {
-          this.links.links.push(attrs.href);
+          this.links.anchors.push(attrs.href);
         }
         break;
       case "link":
         switch (attrs.rel) {
           case "stylesheet":
             if (attrs.href) {
-              this.links.stylesheetLinks.push(attrs.href);
+              this.links.stylesheets.push(attrs.href);
             }
             break;
           case "preload":
-            if (attrs.as === "style" && attrs.href) {
-              this.links.preloadLinks.push(attrs.href);
+            if (attrs.href) {
+              this.links.preload.push(attrs.href);
             }
             break;
         }
         break;
       case "script":
         if (attrs.src) {
-          this.links.scriptLinks.push(attrs.src);
+          this.links.scripts.push(attrs.src);
         } else {
           this.scriptMode = true;
         }
@@ -46,10 +46,10 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
 
   ontext(data) {
     if (this.scriptMode) {
-      this.links.scripts.push(data);
+      this.links.scriptSources.push(data);
     }
     if (this.styleMode) {
-      this.links.styles.push(data);
+      this.links.styleSources.push(data);
     }
   }
 
