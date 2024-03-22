@@ -1,0 +1,66 @@
+{
+  "name": "html-link-finder",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/html/link-finder/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "platform": "node",
+        "outputPath": "dist/apps/html/link-finder",
+        "format": ["cjs"],
+        "bundle": false,
+        "main": "apps/html/link-finder/src/main.ts",
+        "tsConfig": "apps/html/link-finder/tsconfig.app.json",
+        "assets": ["apps/html/link-finder/src/assets"],
+        "generatePackageJson": true,
+        "esbuildOptions": {
+          "sourcemap": true,
+          "outExtension": {
+            ".js": ".js"
+          }
+        }
+      },
+      "configurations": {
+        "development": {},
+        "production": {
+          "esbuildOptions": {
+            "sourcemap": false,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "html-link-finder:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "html-link-finder:build:development"
+        },
+        "production": {
+          "buildTarget": "html-link-finder:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/html/link-finder/jest.config.ts"
+      }
+    }
+  },
+  "tags": []
+}
