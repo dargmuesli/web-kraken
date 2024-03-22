@@ -12,6 +12,11 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
 
   onopentag(name, attrs) {
     switch (name) {
+      case 'base': // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+        if (attrs.href) {
+          this.links.base ||= attrs.href;
+        }
+        break;
       case "a":
         if (attrs.href) {
           this.links.anchors.push(attrs.href);
