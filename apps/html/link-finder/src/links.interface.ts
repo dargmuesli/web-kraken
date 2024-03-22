@@ -1,11 +1,24 @@
+export class Link {
+  constructor(
+    public type: 'script' | 'stylesheet' | 'preload' | 'style' | 'font' | 'image' | 'anchor',
+    public href: string,
+    public integrity?: string,
+  ) {
+  }
+
+  absolute(baseUrl: string): Link {
+    return new Link(this.type, new URL(this.href, baseUrl).href, this.integrity);
+  }
+}
+
 export class HtmlLinks {
   base = '';
-  anchors: string[] = [];
-  stylesheets: string[] = [];
+  anchors: Link[] = [];
+  stylesheets: Link[] = [];
   styleSources: string[] = [];
-  scripts: string[] = [];
+  scripts: Link[] = [];
   scriptSources: string[] = [];
-  preload: string[] = [];
+  preload: Link[] = [];
 
   absolute(baseUrl: string): HtmlLinks {
     const baseUri = new URL(this.base, baseUrl);
@@ -13,7 +26,7 @@ export class HtmlLinks {
     result.scriptSources = this.scriptSources.slice();
     result.styleSources = this.styleSources.slice();
     for (const key of ['anchors', 'stylesheets', 'preload', 'scripts'] as const) {
-      result[key] = this[key].map((link: string) => new URL(link, baseUri).href);
+      result[key] = this[key].map(link => link.absolute(baseUri.href));
     }
     return result;
   }
@@ -21,16 +34,16 @@ export class HtmlLinks {
 }
 
 export class CssLinks {
-  fonts: string[] = [];
-  images: string[] = [];
+  fonts: Link[] = [];
+  images: Link[] = [];
   /** External stylesheets with `@import` */
-  styles: string[] = [];
+  styles: Link[] = [];
 
   absolute(baseUrl: string): CssLinks {
     const baseUri = new URL(baseUrl);
     const result = new CssLinks();
     for (const key of ['fonts', 'images', 'styles'] as const) {
-      result[key] = this[key].map((link: string) => new URL(link, baseUri).href);
+      result[key] = this[key].map(link => link.absolute(baseUri.href));
     }
     return result;
   }
