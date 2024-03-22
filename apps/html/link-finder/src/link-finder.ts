@@ -10,7 +10,7 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
   ) {
   }
 
-  onopentag(name, attrs) {
+  onopentag(name: keyof HTMLElementTagNameMap | string, attrs: Record<string, string>) {
     switch (name) {
       case 'base': // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
         if (attrs.href) {
@@ -49,7 +49,7 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
     }
   }
 
-  ontext(data) {
+  ontext(data: string) {
     if (this.scriptMode) {
       this.links.scriptSources.push(data);
     }
@@ -58,7 +58,7 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
     }
   }
 
-  onclosetag(name) {
+  onclosetag(name: keyof HTMLElementTagNameMap | string) {
     switch (name) {
       case "script":
         this.scriptMode = false;
