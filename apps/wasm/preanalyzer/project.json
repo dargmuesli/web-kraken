@@ -1,7 +1,7 @@
 {
   "name": "preanalyzer",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/preanalyzer/src",
+  "sourceRoot": "apps/wasm/preanalyzer/src",
   "projectType": "application",
   "targets": {
     "build": {
@@ -10,16 +10,16 @@
       "defaultConfiguration": "production",
       "options": {
         "platform": "node",
-        "outputPath": "dist/apps/preanalyzer",
+        "outputPath": "dist/apps/wasm/preanalyzer",
         "format": ["cjs"],
         "bundle": false,
-        "main": "apps/preanalyzer/src/main.ts",
-        "tsConfig": "apps/preanalyzer/tsconfig.app.json",
+        "main": "apps/wasm/preanalyzer/src/main.ts",
+        "tsConfig": "apps/wasm/preanalyzer/tsconfig.app.json",
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/preanalyzer/src/resources/",
-            "output": "./apps/preanalyzer/src/resources/"
+            "input": "apps/wasm/preanalyzer/src/resources/",
+            "output": "./apps/wasm/preanalyzer/src/resources/"
           }
         ],
         "generatePackageJson": true,
@@ -65,7 +65,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/preanalyzer/jest.config.ts"
+        "jestConfig": "apps/wasm/preanalyzer/jest.config.ts"
       }
     }
   },

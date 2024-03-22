@@ -10,5 +10,5 @@ export default {
         ],
     },
     moduleFileExtensions: ['ts', 'js', 'html'],
-    coverageDirectory: '../../coverage/apps/preanalyzer',
+    coverageDirectory: '../../coverage/apps/wasm/preanalyzer',
 };

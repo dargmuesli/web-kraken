@@ -4,9 +4,9 @@
   "license": "MIT",
   "scripts": {},
   "bin": {
-    "wasm-analyzer": "./dist/apps/analyzer/apps/analyzer/src/main.js",
-    "wasm-crawler": "./dist/apps/crawler/apps/crawler/src/main.js",
-    "wasm-preanalyzer": "./dist/apps/preanalyzer/apps/preanalyzer/src/main.js"
+    "wasm-analyzer": "./dist/apps/wasm/analyzer/apps/wasm/analyzer/src/main.js",
+    "wasm-crawler": "./dist/apps/wasm/crawler/apps/wasm/crawler/src/main.js",
+    "wasm-preanalyzer": "./dist/apps/wasm/preanalyzer/apps/wasm/preanalyzer/src/main.js"
   },
   "private": true,
   "dependencies": {

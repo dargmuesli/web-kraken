@@ -8,6 +8,6 @@ To install the CLIs globally run `npm install -g` inside the repository.
 
 The following tools are available:
 
-- [`crawler`](./apps/crawler): Crawl wasm files from different sources.
-- [`preanalyzer`](./apps/preanalyzer): Preprocess wasm files before the actual analysis.
-- [`analyzer`](./apps/analyzer): Analyze multiple wasm files averagely.
+- [`crawler`](./apps/wasm/crawler): Crawl wasm files from different sources.
+- [`preanalyzer`](./apps/wasm/preanalyzer): Preprocess wasm files before the actual analysis.
+- [`analyzer`](./apps/wasm/analyzer): Analyze multiple wasm files averagely.

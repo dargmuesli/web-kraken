@@ -1,7 +1,7 @@
 {
   "name": "crawler",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/crawler/src",
+  "sourceRoot": "apps/wasm/crawler/src",
   "projectType": "application",
   "targets": {
     "build": {
@@ -10,12 +10,12 @@
       "defaultConfiguration": "production",
       "options": {
         "platform": "node",
-        "outputPath": "dist/apps/crawler",
+        "outputPath": "dist/apps/wasm/crawler",
         "format": ["cjs"],
         "bundle": false,
-        "main": "apps/crawler/src/main.ts",
-        "tsConfig": "apps/crawler/tsconfig.app.json",
-        "assets": ["apps/crawler/src/assets"],
+        "main": "apps/wasm/crawler/src/main.ts",
+        "tsConfig": "apps/wasm/crawler/tsconfig.app.json",
+        "assets": ["apps/wasm/crawler/src/assets"],
         "generatePackageJson": true,
         "esbuildOptions": {
           "sourcemap": true,
@@ -59,7 +59,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/crawler/jest.config.ts"
+        "jestConfig": "apps/wasm/crawler/jest.config.ts"
       }
     }
   },

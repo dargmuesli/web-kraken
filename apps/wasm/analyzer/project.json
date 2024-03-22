@@ -1,7 +1,7 @@
 {
   "name": "analyzer",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/analyzer/src",
+  "sourceRoot": "apps/wasm/analyzer/src",
   "projectType": "application",
   "targets": {
     "build": {
@@ -10,16 +10,16 @@
       "defaultConfiguration": "production",
       "options": {
         "platform": "node",
-        "outputPath": "dist/apps/analyzer",
+        "outputPath": "dist/apps/wasm/analyzer",
         "format": ["cjs"],
         "bundle": false,
-        "main": "apps/analyzer/src/main.ts",
-        "tsConfig": "apps/analyzer/tsconfig.app.json",
+        "main": "apps/wasm/analyzer/src/main.ts",
+        "tsConfig": "apps/wasm/analyzer/tsconfig.app.json",
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/analyzer/src/resources/",
-            "output": "./apps/analyzer/src/resources/"
+            "input": "apps/wasm/analyzer/src/resources/",
+            "output": "./apps/wasm/analyzer/src/resources/"
           }
         ],
         "generatePackageJson": true,
@@ -65,7 +65,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/analyzer/jest.config.ts"
+        "jestConfig": "apps/wasm/analyzer/jest.config.ts"
       }
     }
   },
