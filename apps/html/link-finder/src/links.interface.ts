@@ -16,6 +16,7 @@ export class Link {
 export class HtmlLinks {
   base = '';
   anchors: Link[] = [];
+  images: Link[] = [];
   stylesheets: Link[] = [];
   styleSources: string[] = [];
   scripts: Link[] = [];
@@ -27,7 +28,7 @@ export class HtmlLinks {
     const result = new HtmlLinks();
     result.scriptSources = this.scriptSources.slice();
     result.styleSources = this.styleSources.slice();
-    for (const key of ['anchors', 'stylesheets', 'preload', 'scripts'] as const) {
+    for (const key of ['anchors', 'images', 'stylesheets', 'preload', 'scripts'] as const) {
       result[key] = this[key].map(link => link.absolute(baseUri.href));
     }
     return result;

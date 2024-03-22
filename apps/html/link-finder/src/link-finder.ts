@@ -22,6 +22,11 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
           this.links.anchors.push(new Link('anchor', attrs.href));
         }
         break;
+      case 'img':
+        if (attrs.src) {
+          this.links.images.push(new Link('image', attrs.src));
+        }
+        break;
       case "link":
         switch (attrs.rel) {
           case "stylesheet":
@@ -81,6 +86,7 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
  * - `<link rel=preload>`
  * - `<script src>`
  * - `<script>` content
+ * - `<img src>`
  * @param html
  */
 export function html(html: string): HtmlLinks {
