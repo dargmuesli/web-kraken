@@ -19,3 +19,19 @@ export class HtmlLinks {
   }
 
 }
+
+export class CssLinks {
+  fonts: string[] = [];
+  images: string[] = [];
+  /** External stylesheets with `@import` */
+  styles: string[] = [];
+
+  absolute(baseUrl: string): CssLinks {
+    const baseUri = new URL(baseUrl);
+    const result = new CssLinks();
+    for (const key of ['fonts', 'images', 'styles'] as const) {
+      result[key] = this[key].map((link: string) => new URL(link, baseUri).href);
+    }
+    return result;
+  }
+}

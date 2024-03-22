@@ -1,4 +1,4 @@
-import {HtmlLinks} from "./links.interface";
+import {CssLinks, HtmlLinks} from "./links.interface";
 import * as htmlparser2 from "htmlparser2";
 
 export class HtmlCallback implements Partial<htmlparser2.Handler> {
@@ -94,5 +94,60 @@ export function html(html: string): HtmlLinks {
   });
   parser.write(html);
   parser.end();
+  return links;
+}
+
+const FONT_EXTENSIONS = new Set([
+  '.woff',
+  '.woff2',
+  '.ttf',
+]);
+const IMAGE_EXTENSIONS = new Set([
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.svg',
+  '.webp',
+  '.bmp',
+  '.tiff',
+]);
+
+export function css(css: string, url?: string): CssLinks {
+  const urlRegex = /url\s*\(\s*(?:'([^']*)'|"([^"])"|(.*?))\s*\)/gi;
+  const links = new CssLinks();
+
+  for (const match of css.matchAll(urlRegex)) {
+    const link = match[1] || match[2] || match[3];
+
+    if (link.startsWith('data:')) {
+      const mimeType = link.substring('data:'.length, link.indexOf(';'));
+      if (mimeType.startsWith('font/')) {
+        links.fonts.push(link);
+      } else if (mimeType.startsWith('image/')) {
+        links.images.push(link);
+      } else if (mimeType === 'text/css') {
+        links.styles.push(link);
+      }
+    } else {
+      // convert to URL to strip query string, hash, etc.
+      let extension: string;
+      try {
+        const url = new URL(link);
+        extension = url.pathname.substring(url.pathname.lastIndexOf('.'));
+      } catch (e) {
+        extension = link.substring(link.lastIndexOf('.'));
+      }
+      if (FONT_EXTENSIONS.has(extension)) {
+        links.fonts.push(link);
+      } else if (IMAGE_EXTENSIONS.has(extension)) {
+        links.images.push(link);
+      } else if (extension === '.css') {
+        // e.g. `@import url('foo/bar/baz.css');`
+        links.styles.push(link);
+      }
+    }
+  }
+
   return links;
 }
