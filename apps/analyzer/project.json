@@ -16,11 +16,11 @@
         "main": "apps/analyzer/src/main.ts",
         "tsConfig": "apps/analyzer/tsconfig.app.json",
         "assets": [
-            {
-                "glob": "**/*",
-                "input": "apps/analyzer/src/resources/",
-                "output": "./apps/analyzer/src/resources/"
-            }
+          {
+            "glob": "**/*",
+            "input": "apps/analyzer/src/resources/",
+            "output": "./apps/analyzer/src/resources/"
+          }
         ],
         "generatePackageJson": true,
         "esbuildOptions": {
@@ -59,10 +59,7 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/analyzer/**/*.ts"]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",
