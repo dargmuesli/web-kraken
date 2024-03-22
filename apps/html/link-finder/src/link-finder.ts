@@ -133,7 +133,7 @@ export function css(css: string, url?: string): CssLinks {
   return links;
 }
 
-function classifyUrl(link: string, baseUrl?: string): LinkType | undefined {
+export function classifyUrl(link: string, baseUrl?: string): LinkType | undefined {
   if (link.startsWith('data:')) {
     const mimeType = link.substring('data:'.length, link.indexOf(';'));
     if (mimeType.startsWith('font/')) {
