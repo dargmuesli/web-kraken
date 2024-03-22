@@ -1,7 +1,7 @@
 /* eslint-disable */
 export default {
     displayName: 'preanalyzer',
-    preset: '../../jest.preset.js',
+    preset: '../../../jest.preset.js',
     testEnvironment: 'node',
     transform: {
         '^.+\\.[tj]s$': [
@@ -10,5 +10,5 @@ export default {
         ],
     },
     moduleFileExtensions: ['ts', 'js', 'html'],
-    coverageDirectory: '../../coverage/apps/wasm/preanalyzer',
+    coverageDirectory: '../../../coverage/apps/wasm/preanalyzer',
 };
