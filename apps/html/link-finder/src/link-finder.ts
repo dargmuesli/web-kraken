@@ -1,4 +1,4 @@
-import {Links} from "./links.interface";
+import {HtmlLinks} from "./links.interface";
 import * as htmlparser2 from "htmlparser2";
 
 export class HtmlCallback implements Partial<htmlparser2.Handler> {
@@ -6,7 +6,7 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
   private styleMode = false;
 
   constructor(
-    private links: Links,
+    private links: HtmlLinks,
   ) {
   }
 
@@ -70,8 +70,20 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
   }
 }
 
-export function findLinks(html: string): Links {
-  const links = new Links();
+/**
+ * Finds links in HTML sources.
+ * Supported link types:
+ * - `<base href>`
+ * - `<a href>`
+ * - `<link rel=stylesheet>`
+ * - `<style>` content
+ * - `<link rel=preload>`
+ * - `<script src>`
+ * - `<script>` content
+ * @param html
+ */
+export function html(html: string): HtmlLinks {
+  const links = new HtmlLinks();
   const handler = new HtmlCallback(links);
   const parser = new htmlparser2.Parser(handler, {
     decodeEntities: true,
