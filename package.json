@@ -17,6 +17,7 @@
     "commander": "^11.1.0",
     "figlet": "^1.7.0",
     "gunzip-maybe": "^1.4.2",
+    "htmlparser2": "^9.1.0",
     "octokit": "^3.1.2",
     "pouchdb": "^8.0.1",
     "pouchdb-find": "^8.0.1",
