@@ -26,7 +26,7 @@ export class HtmlCallback implements Partial<htmlparser2.Handler> {
         switch (attrs.rel) {
           case "stylesheet":
             if (attrs.href) {
-              this.links.stylesheets.push(new Link('stylesheet', attrs.href, attrs.integrity));
+              this.links.stylesheets.push(new Link('style', attrs.href, attrs.integrity));
             }
             break;
           case "preload":
@@ -121,8 +121,12 @@ export function css(css: string, url?: string): CssLinks {
   for (const match of css.matchAll(urlRegex)) {
     const link = match[1] || match[2] || match[3];
     const type = classifyUrl(link, url);
-    if (type) {
-      links[`${type}s`].push(new Link(type, link));
+    switch (type) {
+      case 'font':
+      case 'style':
+      case 'image':
+        links[`${type}s`].push(new Link(type, link));
+        break;
     }
   }
 
@@ -136,8 +140,13 @@ function classifyUrl(link: string, baseUrl?: string): LinkType | undefined {
       return 'font';
     } else if (mimeType.startsWith('image/')) {
       return 'image';
-    } else if (mimeType === 'text/css') {
-      return 'style';
+    } else switch (mimeType) {
+      case 'text/css':
+        return 'style';
+      case 'application/javascript':
+        return 'script';
+      case 'application/wasm':
+        return 'wasm';
     }
   } else {
     // convert to URL to strip query string, hash, etc.
@@ -152,8 +161,14 @@ function classifyUrl(link: string, baseUrl?: string): LinkType | undefined {
       return 'font';
     } else if (IMAGE_EXTENSIONS.has(extension)) {
       return 'image';
-    } else if (extension === '.css') {
-      return 'style';
+    } else switch (extension) {
+      case '.css':
+        return 'style';
+      case '.js':
+      case '.mjs':
+        return 'script';
+      case '.wasm':
+        return 'wasm';
     }
   }
 }

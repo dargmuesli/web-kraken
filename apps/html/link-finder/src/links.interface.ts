@@ -1,4 +1,4 @@
-export type LinkType = 'script' | 'stylesheet' | 'style' | 'font' | 'image' | 'anchor';
+export type LinkType = 'script' | 'style' | 'font' | 'image' | 'anchor' | 'wasm';
 
 export class Link {
   constructor(
