@@ -1,0 +1,7 @@
+services:
+  orchestration:
+    image: dargmuesli/master-orchestration
+    ports:
+    - 3000:3000
+    volumes:
+    - ./orchestration:/srv/app
