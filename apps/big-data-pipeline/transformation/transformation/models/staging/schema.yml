@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: staging_common_crawl
+    description: Common Crawl data.
+    columns:
+      - name: response_headers_status_code
+        description: '{{ doc("common_crawl__response_headers_status_code") }}'
+        data_type: number
+        data_tests:
+          - not_null
+          - is_2xx
+      - name: response_payload
+        description: '{{ doc("common_crawl__response_payload") }}'
+        data_type: string
+        data_tests:
+          - not_null
+      - name: warc_warcinfo_id
+        description: '{{ doc("common_crawl__warc_warcinfo_id") }}'
+        data_type: string
+        data_tests:
+          - unique
+          - not_null
+  - name: staging_country_codes
+    description: '{{ doc("country_codes") }}'
+    columns:
+      - name: country_code
+        description: '{{ doc("country_codes__country_code") }}'
+        data_type: string
+        data_tests:
+          - not_null
+      - name: top_level_domain
+        description: '{{ doc("country_codes__top_level_domain") }}'
+        data_type: string
+        data_tests:
+          - unique
+          - not_null
+
+sources:
+  - name: raw
+    tables:
+      - name: source_country_codes
+        description: '{{ doc("country_codes") }}'
+        columns:
+          - name: country_code
+            description: '{{ doc("country_codes__country_code") }}'
+          - name: top_level_domain
+            description: '{{ doc("country_codes__top_level_domain") }}'
+        meta:
+          dagster:
+            asset_key: ["source_country_codes"]
+      - name: source_common_crawl
+        description: '{{ doc("common_crawl") }}'
+        columns:
+          - name: response_headers_status_code
+            description: '{{ doc("common_crawl__response_headers_status_code") }}'
+          - name: response_payload
+            description: '{{ doc("common_crawl__response_payload") }}'
+          - name: warc_warcinfo_id
+            description: '{{ doc("common_crawl__warc_warcinfo_id") }}'
+        meta:
+          dagster:
+            asset_key: ["source_common_crawl"]
+    freshness:
+      warn_after: {count: 150, period: day}
+      error_after: {count: 365, period: day}
+      filter: datediff('year', dump, current_timestamp) < 2
+    loaded_at_field: dump

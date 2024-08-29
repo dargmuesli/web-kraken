@@ -1,0 +1,49 @@
+name: 'transformation'
+version: '0.0.0'
+
+profile: 'transformation'
+
+model-paths: ["transformation/models"]
+analysis-paths: ["transformation/analyses"]
+test-paths: ["transformation/tests"]
+seed-paths: ["transformation/seeds"]
+macro-paths: ["transformation/macros"]
+# snapshot-paths: ["transformation/snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  +file_format: iceberg
+  # https://docs.getdbt.com/reference/resource-configs/spark-configs
+  # +incremental_strategy: merge
+  transformation:
+    marts:
+      +materialized: incremental
+      +schema: marts
+    staging:
+      +materialized: view
+      +schema: staging
+
+seeds:
+  +file_format: iceberg
+  +schema: raw
+  transformation:
+    seed_common_crawl:
+      +column_types:
+        response_headers_status_code: int
+        response_payload: string
+        warc_warcinfo_id: string
+    seed_country_codes:
+      +column_types:
+        country_code: string
+        top_level_domain: string
+    # +quote_columns: false
+
+# snapshots:
+#   +file_format: iceberg
+
+# vars:
+#   transformation:
+#     test: 123

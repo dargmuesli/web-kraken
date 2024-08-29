@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: dimension_framework
+    # description: x
+    columns:
+      - name: id
+        # description: '{{ doc("x") }}'
+        data_type: number
+        data_tests:
+          - not_null
+          - unique
+      - name: name
+        # description: '{{ doc("x") }}'
+        data_type: string
+        data_tests:
+          - not_null
+  - name: fact_website
+    # description: x
+    columns:
+      - name: country
+        # description: '{{ doc("x") }}'
+        data_type: string
+        data_tests:
+          - not_null
+      - name: domain
+        # description: '{{ doc("x") }}'
+        data_type: string
+        data_tests:
+          - unique
+          - not_null
+      - name: framework_id
+        # description: '{{ doc("x") }}'
+        data_type: number
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dimension_framework')
+              field: id

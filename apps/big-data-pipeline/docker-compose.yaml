@@ -1,7 +1,171 @@
+# x-superset-depends-on: &superset-depends-on
+#   - db
+#   - redis
+# x-superset-env-file: &superset-env-file
+#   - path: visualization/docker/.env
+#     required: true
+# x-superset-image: &superset-image apache/superset:4.0.2
+# x-superset-volumes:
+#   &superset-volumes
+#   - ./visualization/docker:/app/docker
+#   - superset_data:/app/superset_home
+# x-minio-environment:
+#   &minio-environment
+#   - AWS_ACCESS_KEY_ID=admin
+#   - AWS_SECRET_ACCESS_KEY=password
+#   - AWS_REGION=us-east-1
+
 services:
-  orchestration:
-    image: dargmuesli/master-orchestration
+  # orchestration
+  dagster:
+    depends_on:
+      - spark-iceberg
+    image: dargmuesli/master-thesis_dagster
     ports:
-    - 3000:3000
+      - 3000:3000
+    restart: unless-stopped
     volumes:
-    - ./orchestration:/srv/app
+      - ./orchestration:/srv/app
+      - ./transformation:/srv/transformation
+
+  # storage
+  minio:
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_DOMAIN: minio
+      MINIO_ROOT_PASSWORD: password
+      MINIO_ROOT_USER: admin
+    image: minio/minio
+    networks:
+      default:
+        aliases:
+          - lakehouse.minio
+    ports:
+      - 9001:9001
+      - 9000:9000
+    restart: unless-stopped
+    volumes:
+      - minio_data:/data
+  minio-client:
+    depends_on:
+      - minio
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc config host add minio http://minio:9000 admin password) do echo '...waiting...' && sleep 1; done;
+      /usr/bin/mc rm -r --force minio/lakehouse;
+      /usr/bin/mc mb minio/lakehouse;
+      /usr/bin/mc anonymous set public minio/lakehouse;
+      tail -f /dev/null
+      "
+    image: minio/mc
+    restart: unless-stopped
+  rest:
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
+      - CATALOG_WAREHOUSE=s3://lakehouse/
+      - CATALOG_IO__IMPL=org.apache.iceberg.aws.s3.S3FileIO
+      - CATALOG_S3_ENDPOINT=http://minio:9000
+      # - CATALOG_S3_PATH__STYLE__ACCESS=true
+    image: tabulario/iceberg-rest:1.6.1
+    ports:
+      - 8181:8181
+    restart: unless-stopped
+  spark-iceberg:
+    image: tabulario/spark-iceberg:3.5.1_1.6.1
+    depends_on:
+      - rest
+      - minio
+    # volumes:
+    #   - ./storage/lakehouse:/home/iceberg/lakehouse
+    #   - ./storage/notebooks:/home/iceberg/notebooks/notebooks
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
+    ports:
+      # - 7077:7077
+      - 8888:8888
+      - 8080:8080
+      - 10000:10000
+      - 10001:10001
+    restart: unless-stopped
+    volumes:
+      - ./docker/entrypoint.sh:/opt/spark/entrypoint.sh
+    #   - ./docker/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+
+  # # transformation
+  # dbt-spark:
+  #   image: ghcr.io/dbt-labs/dbt-spark:1.8.0
+  #   ports:
+  #     - 3000:3000
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./transformation:/usr/app
+  #     - ./docker/transformation/profiles.yaml:/root/.dbt/profiles.yaml
+#   # visualization
+#   db:
+#     env_file: *superset-env-file
+#     image: postgres:16.4-alpine
+#     restart: unless-stopped
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#       # - ./visualization/docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+#   redis:
+#     image: redis:7.4.0-alpine
+#     restart: unless-stopped
+#     volumes:
+#       - redis_data:/data
+#   superset:
+#     command: ['/app/docker/docker-bootstrap.sh', 'app-gunicorn']
+#     depends_on: *superset-depends-on
+#     env_file: *superset-env-file
+#     image: *superset-image
+#     ports:
+#       - 8088:8088
+#     restart: unless-stopped
+#     user: root
+#     volumes: *superset-volumes
+#   superset-init:
+#     command: ["/app/docker/docker-init.sh"]
+#     depends_on: *superset-depends-on
+#     env_file: *superset-env-file
+#     healthcheck:
+#       disable: true
+#     image: *superset-image
+#     user: root
+#     volumes: *superset-volumes
+#   superset-worker:
+#     command: ["/app/docker/docker-bootstrap.sh", "worker"]
+#     env_file: *superset-env-file
+#     healthcheck:
+#       test:
+#         [
+#           "CMD-SHELL",
+#           "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME",
+#         ]
+#     image: *superset-image
+#     depends_on: *superset-depends-on
+#     restart: unless-stopped
+#     user: "root"
+#     volumes: *superset-volumes
+#   superset-worker-beat:
+#     command: ["/app/docker/docker-bootstrap.sh", "beat"]
+#     depends_on: *superset-depends-on
+#     env_file: *superset-env-file
+#     healthcheck:
+#       disable: true
+#     image: *superset-image
+#     restart: unless-stopped
+#     user: root
+#     volumes: *superset-volumes
+volumes:
+  minio_data: {}
+#   postgres_data: {}
+#   redis_data: {}
+#   superset_data: {}
