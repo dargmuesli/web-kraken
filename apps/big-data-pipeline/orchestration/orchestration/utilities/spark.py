@@ -13,14 +13,11 @@ class SparkSingleton:
     @property
     def spark(self):
         if self._spark is None:
-            os.environ["AWS_ACCESS_KEY_ID"] = "admin"
-            os.environ["AWS_SECRET_ACCESS_KEY"] = "password"
-            os.environ["AWS_REGION"] = "us-east-1"
-            # os.environ["AWS_S3_ENDPOINT"] = "http://test:9000"
-
             self._spark = SparkSession.builder \
                 .appName("Big Data Pipeline") \
                 .master("spark://spark-iceberg:7077") \
+                .config("spark.driver.memory", "3g") \
+                .config("spark.executor.memory", "3g") \
                 .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
                 .config("spark.sql.catalog.demo", "org.apache.iceberg.spark.SparkCatalog") \
                 .config("spark.sql.catalog.demo.type", "rest") \
@@ -33,6 +30,7 @@ class SparkSingleton:
                 .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,"
                                                "org.apache.iceberg:iceberg-aws-bundle:1.6.1") \
                 .getOrCreate()
+        # TODO: add jars to docker image
         return self._spark
 
 

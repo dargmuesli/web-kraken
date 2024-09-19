@@ -10,13 +10,11 @@ from orchestration.utilities.logs import logger
 from orchestration.utilities.performance import batch_process, batch_records, measure_performance
 from orchestration.utilities.pickles import get_pickle_path
 
-PICKLE_PATH = get_pickle_path("common_crawl")
+MODULE_NAME = 'common_crawl'
 
-
-# WARC_URN_PATTERN = r"urn:uuid:([a-f0-9\-]+)"
 
 @measure_performance
-def fetch_warc_paths():
+def fetch_warc_datasets():
     url = "https://index.commoncrawl.org/collinfo.json"
 
     response = requests.get(url)
@@ -26,8 +24,11 @@ def fetch_warc_paths():
     if not datasets:
         raise ValueError("No datasets found.")
 
-    most_recent_dataset = datasets[0]
-    dataset_id = most_recent_dataset['id']
+    return datasets
+
+
+@measure_performance
+def fetch_warc_paths(dataset_id: str):
     warc_paths_url = urljoin('https://data.commoncrawl.org/', f'crawl-data/{dataset_id}/warc.paths.gz')
 
     response = requests.get(warc_paths_url)
@@ -50,7 +51,7 @@ def fetch_warc_stream(warc_file: str):
 
 
 @measure_performance
-def get_warc_record_stream(archive_stream: ArchiveIterator, filter_short_html=False):
+def get_warc_record_stream(archive_stream: ArchiveIterator, dataset_id: str, filter_short_html=False):
     success_counter = 0
     failure_counter = 0
 
@@ -79,12 +80,6 @@ def get_warc_record_stream(archive_stream: ArchiveIterator, filter_short_html=Fa
                 raise NotImplementedError(f'The HTTP charset `{record.http_charset}` is unknown.')
         response_charset = record.http_charset
 
-        # match = re.search(WARC_URN_PATTERN, record.record_id)
-        #
-        # if not match:
-        #     raise NotImplementedError(f'The WARC record ID `{record.record_id}` does not match the expected format.')
-        # record_uuid = match.group(1)
-
         response_target_uri = record.headers.get('WARC-Target-URI')
         if not response_target_uri:
             raise NotImplementedError(f'The target URI seems to be missing for record ID `{record.record_id}`.')
@@ -110,26 +105,31 @@ def get_warc_record_stream(archive_stream: ArchiveIterator, filter_short_html=Fa
         success_counter += 1
 
         yield {
-            "response_charset": response_charset,
-            "response_payload": response_payload_decoded,
+            'dataset_id': dataset_id,
+            'response_charset': response_charset,
+            'response_headers_status_code': record.http_headers.status_code,
+            'response_payload': response_payload_decoded,
+            'response_payload_size': response_payload_decoded_length,
             'response_target_uri': response_target_uri,
-            # 'warc_warcinfo_id': record_uuid
         }
-
-        # print(f"WARC Target URI TLD: {urlparse(record.headers.get('WARC-Target-URI')).netloc.split('.')[-1]}")
 
 
 @measure_performance
 def write_pickle(batch: list, is_written: bool):
     dataframe = pd.DataFrame(batch)
-    dataframe.to_csv(PICKLE_PATH, mode='a' if is_written else 'w', index=False, header=not is_written)
+    pickle_path = get_pickle_path(MODULE_NAME)
+    dataframe.to_csv(pickle_path, mode='a' if is_written else 'w', index=False, header=not is_written)
 
 
 def fetch_warc_record_stream(filter_short_html=False):
-    warc_paths = fetch_warc_paths()
+    warc_datasets = fetch_warc_datasets()
+    most_recent_dataset = warc_datasets[0]
+    dataset_id = most_recent_dataset['id']
+    warc_paths = fetch_warc_paths(dataset_id)
     warc_stream = fetch_warc_stream(warc_paths[0])
     archive_stream = ArchiveIterator(warc_stream.raw, record_types=WarcRecordType.response)
-    warc_record_stream = get_warc_record_stream(archive_stream, filter_short_html=filter_short_html)
+    warc_record_stream = get_warc_record_stream(archive_stream, dataset_id=dataset_id,
+                                                filter_short_html=filter_short_html)
     return warc_record_stream
 
 

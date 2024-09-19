@@ -4,6 +4,14 @@ models:
   - name: staging_common_crawl
     description: Common Crawl data.
     columns:
+      - name: dataset_id
+        description: '{{ doc("common_crawl__dataset_id") }}'
+        data_type: string
+        data_tests:
+          - not_null
+      - name: response_charset
+        description: '{{ doc("common_crawl__response_charset") }}'
+        data_type: string
       - name: response_headers_status_code
         description: '{{ doc("common_crawl__response_headers_status_code") }}'
         data_type: number
@@ -15,12 +23,17 @@ models:
         data_type: string
         data_tests:
           - not_null
-      - name: warc_warcinfo_id
-        description: '{{ doc("common_crawl__warc_warcinfo_id") }}'
+      - name: response_payload_size
+        description: '{{ doc("common_crawl__response_payload_size") }}'
+        data_type: number
+        data_tests:
+          - not_null
+      - name: response_target_uri
+        description: '{{ doc("common_crawl__response_target_uri") }}'
         data_type: string
         data_tests:
-          - unique
           - not_null
+          - unique
   - name: staging_country_codes
     description: '{{ doc("country_codes") }}'
     columns:
@@ -35,10 +48,51 @@ models:
         data_tests:
           - unique
           - not_null
+  - name: staging_web_technologies
+    description: '{{ doc("web_technologies") }}'
+    columns:
+      - name: description
+        description: '{{ doc("web_technologies__description") }}'
+        data_type: string
+        data_tests:
+          - unique
+      - name: html_regular_expressions
+        description: '{{ doc("web_technologies__html_regular_expressions") }}'
+        data_type: string
+        data_tests:
+          - unique
+          - not_null
+      - name: name
+        description: '{{ doc("web_technologies__name") }}'
+        data_type: string
+        data_tests:
+          - unique
+          - not_null
+      - name: website
+        description: '{{ doc("web_technologies__website") }}'
+        data_type: string
+        data_tests:
+          - not_null
 
 sources:
   - name: raw
     tables:
+      - name: source_common_crawl
+        description: '{{ doc("common_crawl") }}'
+        columns:
+          - name: dataset_id
+            description: '{{ doc("common_crawl__dataset_id") }}'
+          - name: response_charset
+            description: '{{ doc("common_crawl__response_charset") }}'
+          - name: response_headers_status_code
+            description: '{{ doc("common_crawl__response_headers_status_code") }}'
+          - name: response_payload
+            description: '{{ doc("common_crawl__response_payload") }}'
+          - name: response_target_uri
+            description: '{{ doc("common_crawl__response_target_uri") }}'
+        meta:
+          dagster:
+            asset_key: ["source_common_crawl"]
       - name: source_country_codes
         description: '{{ doc("country_codes") }}'
         columns:
@@ -49,18 +103,22 @@ sources:
         meta:
           dagster:
             asset_key: ["source_country_codes"]
-      - name: source_common_crawl
-        description: '{{ doc("common_crawl") }}'
+      - name: source_web_technologies
+        description: '{{ doc("web_technologies") }}'
         columns:
-          - name: response_headers_status_code
-            description: '{{ doc("common_crawl__response_headers_status_code") }}'
-          - name: response_payload
-            description: '{{ doc("common_crawl__response_payload") }}'
-          - name: warc_warcinfo_id
-            description: '{{ doc("common_crawl__warc_warcinfo_id") }}'
+          - name: cats
+            description: '{{ doc("web_technologies__category_ids") }}'
+          - name: description
+            description: '{{ doc("web_technologies__description") }}'
+          - name: html
+            description: '{{ doc("web_technologies__html_regular_expressions") }}'
+          - name: name
+            description: '{{ doc("web_technologies__name") }}'
+          - name: website
+            description: '{{ doc("web_technologies__website") }}'
         meta:
           dagster:
-            asset_key: ["source_common_crawl"]
+            asset_key: ["source_web_technologies"]
     freshness:
       warn_after: {count: 150, period: day}
       error_after: {count: 365, period: day}

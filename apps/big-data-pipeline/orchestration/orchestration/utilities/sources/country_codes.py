@@ -7,6 +7,7 @@ from orchestration.utilities.pickles import get_pickle_path
 # Other sources:
 # https://www.iana.org/domains/root/db
 COUNTRY_CODES_URL = "https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes"
+MODULE_NAME = "country_codes"
 
 
 @measure_performance
@@ -18,9 +19,6 @@ def fetch_tables() -> list[pd.DataFrame]:
 
 @measure_performance
 def table_to_dataframe(table: pd.DataFrame) -> pd.DataFrame:
-    """Retrieves a table from Wikipedia, transforming it so that each top-level domain is assigned an ISO 3166 country
-    code.
-    """
     selected_columns: pd.DataFrame = table.iloc[:, [3, 7]]
     selected_columns.columns = ['country_code', 'top_level_domain']
 
@@ -44,13 +42,14 @@ def write_pickle(dataframe: pd.DataFrame, path: str):
 
 @measure_performance
 def write_source(spark_dataframe: pyspark.sql.DataFrame):
-    spark_dataframe.writeTo("raw.source_country_codes").createOrReplace()
+    spark_dataframe.writeTo(f"raw.source_{MODULE_NAME}").createOrReplace()
 
 
 def create_pickle():
     tables = fetch_tables()
     dataframe = table_to_dataframe(tables[0])
-    write_pickle(dataframe, get_pickle_path("country_codes"))
+    pickle_path = get_pickle_path(MODULE_NAME)
+    write_pickle(dataframe, pickle_path)
 
 
 if __name__ == '__main__':

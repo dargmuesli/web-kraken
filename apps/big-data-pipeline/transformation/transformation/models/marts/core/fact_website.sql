@@ -1,27 +1,22 @@
 WITH websites AS (
   SELECT
     *
-  FROM {{ ref('staging_common_crawl')}}
+  FROM {{ source('intermediate', 'intermediate') }}
 ),
-WITH country_codes AS (
-  SELECT
-    *
-  FROM {{ ref('staging_country_codes')}}
-),
-
-custom AS (
-  SELECT id
-  FROM websites
-),
+-- WITH web_technologies AS (
+--   SELECT
+--     name
+--   FROM {{ ref('dimension_web_technology') }}
+-- ),
 
 final AS (
   SELECT
     x AS country,
     x AS domain,
-    x AS framework_id,
+    x AS web_technology_id,
   FROM websites
-  LEFT JOIN custom
-    ON websites.id = custom.id
+  LEFT JOIN web_technologies
+    ON websites.web_technologies = web_technologies.name
 )
 
 SELECT * FROM final -- `final` can be changed to `custom` or others to troubleshoot

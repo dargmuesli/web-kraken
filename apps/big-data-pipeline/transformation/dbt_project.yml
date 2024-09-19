@@ -16,12 +16,15 @@ clean-targets:
 
 models:
   +file_format: iceberg
-  # https://docs.getdbt.com/reference/resource-configs/spark-configs
-  # +incremental_strategy: merge
+  +incremental_strategy: merge
+
   transformation:
     marts:
       +materialized: incremental
       +schema: marts
+      core:
+        dimension_web_technologies:
+          +unique_key: id
     staging:
       +materialized: view
       +schema: staging
@@ -32,14 +35,23 @@ seeds:
   transformation:
     seed_common_crawl:
       +column_types:
+        dataset_id: string
+        response_charset: string
         response_headers_status_code: int
         response_payload: string
-        warc_warcinfo_id: string
+        response_payload_size: int
+        response_target_uri: string
     seed_country_codes:
       +column_types:
         country_code: string
         top_level_domain: string
-    # +quote_columns: false
+    seed_web_technologies:
+      +column_types:
+        cats: string
+        description: string
+        html_regular_expressions: string
+        name: string
+        website: string
 
 # snapshots:
 #   +file_format: iceberg

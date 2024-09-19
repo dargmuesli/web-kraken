@@ -33,6 +33,28 @@ def batch_records(data: Generator, batch_size=1000, limit_records=None):
         yield batch
 
 
+# def batch_records(data: Generator, batch_size=1000000, limit_records=None):
+#     counter_amount = 0
+#     counter_size = 0
+#     batch = []
+#
+#     for record in data:
+#         if limit_records and counter_amount >= limit_records:
+#             break
+#
+#         batch.append(record)
+#         counter_amount += 1
+#         counter_size += asizeof.asizeof(record)
+#
+#         if counter_size >= batch_size:
+#             yield batch
+#             counter_size = 0
+#             batch = []
+#
+#     if batch:
+#         yield batch
+
+
 def measure_performance(func):
     """Decorator to measure the execution time of a function."""
 

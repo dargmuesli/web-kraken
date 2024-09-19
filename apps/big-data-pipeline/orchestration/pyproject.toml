@@ -14,15 +14,16 @@ authors = ["Jonas Thelemann <e-mail@jonas-thelemann.de>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-dagster = "1.8.2"
-dagster-dbt = "0.24.2"
-dagster-webserver = "1.8.2"
+dagster = "1.8.4"
+dagster-dbt = "0.24.4"
+dagster-webserver = "1.8.4"
 dbt-spark = {extras = ["pyhive"], version = "1.8.0"}
 fastwarc = "0.14.9"
 lxml = "5.3.0"
 memory-profiler = "0.61.0"
 objgraph = "3.6.1"
 pandas = "2.2.2"
+plotly = "5.24.0"
 pyspark = "3.5.2"
 pympler = "1.1"
 python = ">=3.11,<3.12" # Spark is built with Python 3.11

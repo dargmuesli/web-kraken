@@ -2,19 +2,40 @@ version: 2
 
 seeds:
   - name: seed_common_crawl
-    description: A website page's WARC data in table format.
+    description: 100 website pages' WARC data in table format.
     columns:
+      - name: dataset_id
+        description: '{{ doc("common_crawl__dataset_id") }}'
+        data_type: string
+      - name: response_charset
+        description: '{{ doc("common_crawl__response_charset") }}'
+        data_type: string
       - name: response_headers_status_code
         description: '{{ doc("common_crawl__response_headers_status_code") }}'
         data_type: number
       - name: response_payload
         description: '{{ doc("common_crawl__response_payload") }}'
         data_type: string
-      - name: warc_warcinfo_id
-        description: '{{ doc("common_crawl__warc_warcinfo_id") }}'
+      - name: response_payload_size
+        description: '{{ doc("common_crawl__response_payload_size") }}'
+        data_type: number
+      - name: response_target_uri
+        description: '{{ doc("common_crawl__response_target_uri") }}'
         data_type: string
+      # - name: warc_warcinfo_id
+      #   description: '{{ doc("common_crawl__warc_warcinfo_id") }}'
+      #   data_type: string
   - name: seed_country_codes
-    description: Snapshot of a source crawl.
+    description: A full country code to top level domain mapping.
+    columns:
+      - name: country_code
+        description: '{{ doc("country_codes__country_code") }}'
+        data_type: string
+      - name: top_level_domain
+        description: '{{ doc("country_codes__top_level_domain") }}'
+        data_type: string
+  - name: seed_web_technologies
+    description: 100 web technologies and detecting HTML regular expressions.
     columns:
       - name: country_code
         description: '{{ doc("country_codes__country_code") }}'

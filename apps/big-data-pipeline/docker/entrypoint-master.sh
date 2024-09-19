@@ -18,8 +18,8 @@
 # under the License.
 
 start-master.sh -p 7077
-start-worker.sh spark://spark-iceberg:7077
-start-history-server.sh
+# start-worker.sh spark://spark-iceberg:7077
+# start-history-server.sh
 start-thriftserver.sh  --driver-java-options "-Dderby.system.home=/tmp/derby"
 
 # required for dbt
@@ -31,6 +31,7 @@ EOF
 spark-sql <<EOF
 CREATE DATABASE IF NOT EXISTS raw;
 CREATE DATABASE IF NOT EXISTS staging;
+CREATE DATABASE IF NOT EXISTS intermediate;
 CREATE DATABASE IF NOT EXISTS marts;
 EOF
 
