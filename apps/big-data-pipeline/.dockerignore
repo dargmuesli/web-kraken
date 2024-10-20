@@ -1,0 +1,10 @@
+__pycache__
+
+orchestration/.idea
+orchestration/.venv
+orchestration/dist
+orchestration/pickles
+
+transformation/.venv
+transformation/target
+transformation/.user.yml
