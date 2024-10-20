@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "transformation"
+version = "0.0.0"
+description = "Transform, model and manage data within the data lakehouse using SQL, promoting the data pipeline's modularization and version-control."
+authors = ["Jonas Thelemann <e-mail@jonas-thelemann.de>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+dbt-core = "1.8.5"
+dbt-spark = {extras = ["pyhive"], version = "1.8.0"}
+python = ">=3.11,<3.12" # Spark is built with Python 3.11
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

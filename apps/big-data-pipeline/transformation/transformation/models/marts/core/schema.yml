@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: dimension_web_technology
+    # description: x
+    columns:
+      - name: description
+        description: '{{ doc("web_technologies__description") }}'
+        data_type: number
+        data_tests:
+          - unique
+      - name: name
+        description: '{{ doc("web_technologies__name") }}'
+        data_type: string
+        data_tests:
+          - not_null
+          - unique
+      - name: website
+        description: '{{ doc("web_technologies__website") }}'
+        data_type: string
+        data_tests:
+          - not_null
+  - name: fact_website
+    # description: x
+    columns:
+      - name: country_code
+        description: '{{ doc("country_codes__country_code") }}'
+        data_type: string
+        data_tests:
+          - not_null
+      - name: uri
+        description: '{{ doc("common_crawl__response_target_uri") }}'
+        data_type: string
+        data_tests:
+          - unique
+          - not_null
+      - name: web_technology_name
+        description: '{{ doc("web_technologies__name") }}'
+        data_type: number
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dimension_web_technology')
+              field: name
+
+sources:
+  - name: intermediate
+    tables:
+      - name: intermediate
+        description: '{{ doc("intermediate") }}'
+        columns:
+          - name: country_code
+            description: '{{ doc("country_codes__country_code") }}'
+          - name: web_technology
+            description: '{{ doc("intermediate__web_technologies") }}'
+          - name: uri
+            description: '{{ doc("common_crawl__response_target_uri") }}'
+        meta:
+          dagster:
+            asset_key: ["intermediate"]
