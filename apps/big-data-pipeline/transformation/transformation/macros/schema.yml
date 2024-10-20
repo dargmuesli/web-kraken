@@ -1,0 +1,7 @@
+version: 2
+
+macros:
+  - name: generate_schema_name
+    description: This macro changes the default behavior of dbt in regards to schema naming so that no default schema is prepended.
+  - name: test_is_2xx
+    description: This macro checks for a successful status code (200-299).

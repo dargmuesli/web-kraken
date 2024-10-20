@@ -1,0 +1,61 @@
+name: 'transformation'
+version: '0.0.0'
+
+profile: 'transformation'
+
+model-paths: ["transformation/models"]
+analysis-paths: ["transformation/analyses"]
+test-paths: ["transformation/tests"]
+seed-paths: ["transformation/seeds"]
+macro-paths: ["transformation/macros"]
+# snapshot-paths: ["transformation/snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  +file_format: iceberg
+  +incremental_strategy: merge
+
+  transformation:
+    marts:
+      +materialized: incremental
+      +schema: marts
+      core:
+        dimension_web_technology:
+          +unique_key: id
+    staging:
+      +materialized: view
+      +schema: staging
+
+seeds:
+  +file_format: iceberg
+  +schema: raw
+  transformation:
+    seed_common_crawl:
+      +column_types:
+        dataset_id: string
+        response_charset: string
+        response_headers_status_code: int
+        response_payload: string
+        response_payload_size: int
+        response_target_uri: string
+    seed_country_codes:
+      +column_types:
+        country_code: string
+        top_level_domain: string
+    seed_web_technologies:
+      +column_types:
+        cats: string
+        description: string
+        html_regular_expressions: string
+        name: string
+        website: string
+
+# snapshots:
+#   +file_format: iceberg
+
+# vars:
+#   transformation:
+#     test: 123
