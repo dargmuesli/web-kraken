@@ -2,6 +2,7 @@ __pycache__
 
 orchestration/.idea
 orchestration/.venv
+orchestration/charts
 orchestration/dist
 orchestration/pickles
 

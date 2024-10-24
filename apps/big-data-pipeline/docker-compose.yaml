@@ -32,6 +32,12 @@ services:
     volumes:
       - ./orchestration:/srv/app
       - ./transformation:/srv/transformation
+  httpd:
+    image: httpd:2.4.62-alpine
+    ports:
+      - 8008:80
+    volumes:
+      - ./orchestration/charts:/usr/local/apache2/htdocs
 
   # storage
   minio:
